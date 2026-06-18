@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
 import Sidebar from "../components/Sidebar";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+
 import PageLoader
 from "../components/PageLoader";
 
@@ -158,7 +157,10 @@ function SalesHistoryPage() {
         (sale.price || 0),
       0
     );
-    function downloadPDF() {
+    async function downloadPDF() {
+
+      const { default: jsPDF } = await import("jspdf");
+const autoTable = (await import("jspdf-autotable")).default;
 
         const doc = new jsPDF();
       

@@ -253,7 +253,7 @@ for (const key in productMapping) {
   ) {
 
     inventoryName =
-      productMapping[key];
+      productMapping[key as keyof typeof productMapping];
 
     break;
 
@@ -275,7 +275,7 @@ if (
         console.log(
           "[" + invoiceName + "]",
           "=>",
-          productMapping[invoiceName]
+          productMapping[invoiceName as keyof typeof productMapping]
         );
 
         const existsInInventory =

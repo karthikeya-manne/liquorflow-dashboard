@@ -17,9 +17,6 @@ import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
 
 import Sidebar from "../components/Sidebar";
 
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-
 import PageLoader
 from "../components/PageLoader";
 
@@ -423,7 +420,10 @@ function DashboardPage() {
 
   });
 
-  function downloadPurchaseList() {
+  async function downloadPurchaseList() {
+
+    const { default: jsPDF } = await import("jspdf");
+const autoTable = (await import("jspdf-autotable")).default;
 
     const doc = new jsPDF();
   
@@ -526,7 +526,10 @@ function DashboardPage() {
     0
   );
 
-  function downloadDailyReport() {
+  async function downloadDailyReport() {
+
+    const { default: jsPDF } = await import("jspdf");
+const autoTable = (await import("jspdf-autotable")).default;
 
     const doc = new jsPDF();
   
