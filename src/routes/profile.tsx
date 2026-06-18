@@ -17,7 +17,8 @@ import {
 
 import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
 
-import Sidebar from "../components/sidebar";
+
+import Sidebar from "../components/Sidebar";
 
 import toast from "react-hot-toast";
 

@@ -9,7 +9,7 @@ getDocs,
 
 import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
 
-import Sidebar from "../components/sidebar";
+import Sidebar from "../components/Sidebar";
 
 import PageLoader
 from "../components/PageLoader";

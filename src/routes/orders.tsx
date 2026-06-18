@@ -12,7 +12,7 @@ doc,
 
 import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
 
-import Sidebar from "../components/sidebar";
+import Sidebar from "../components/Sidebar";
 
 export const Route = createFileRoute("/orders")({
 component: OrdersPage,
