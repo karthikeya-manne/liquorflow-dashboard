@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Sidebar from "../components/Sidebar";
 import { useState } from "react";
-import * as pdfjsLib from "pdfjs-dist";
-import pdfWorker from "pdfjs-dist/build/pdf.worker.js?url";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  pdfWorker;
   import {
     collection,
     getDocs,
@@ -31,7 +27,7 @@ import toast from "react-hot-toast";
 
 
 export const Route =
-  createFileRoute("/invoice-upload/backup")({
+  createFileRoute("/invoice-upload")({
     component: InvoiceUploadPage,
   });
 
@@ -100,6 +96,13 @@ function InvoiceUploadPage() {
   
     const arrayBuffer =
       await file.arrayBuffer();
+
+      const pdfjsLib = await import("pdfjs-dist");
+const pdfWorker = (
+  await import("pdfjs-dist/build/pdf.worker.js?url")
+).default;
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
   
     const pdf =
       await pdfjsLib.getDocument({

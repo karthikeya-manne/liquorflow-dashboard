@@ -14,6 +14,7 @@ import { Route as SalesRouteImport } from './routes/sales'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InvoiceUploadRouteImport } from './routes/invoice-upload'
 import { Route as InvoiceHistoryRouteImport } from './routes/invoice-history'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -21,7 +22,6 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as InvoiceUploadBackupRouteImport } from './routes/invoice-upload.backup'
 import { Route as AppAlertsRouteImport } from './routes/_app.alerts'
 
 const SalesHistoryRoute = SalesHistoryRouteImport.update({
@@ -47,6 +47,11 @@ const OrdersRoute = OrdersRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoiceUploadRoute = InvoiceUploadRouteImport.update({
+  id: '/invoice-upload',
+  path: '/invoice-upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvoiceHistoryRoute = InvoiceHistoryRouteImport.update({
@@ -83,11 +88,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const InvoiceUploadBackupRoute = InvoiceUploadBackupRouteImport.update({
-  id: '/invoice-upload/backup',
-  path: '/invoice-upload/backup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppAlertsRoute = AppAlertsRouteImport.update({
   id: '/alerts',
   path: '/alerts',
@@ -101,13 +101,13 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoice-history': typeof InvoiceHistoryRoute
+  '/invoice-upload': typeof InvoiceUploadRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
   '/sales-history': typeof SalesHistoryRoute
   '/alerts': typeof AppAlertsRoute
-  '/invoice-upload/backup': typeof InvoiceUploadBackupRoute
 }
 export interface FileRoutesByTo {
   '/billing': typeof BillingRoute
@@ -115,13 +115,13 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoice-history': typeof InvoiceHistoryRoute
+  '/invoice-upload': typeof InvoiceUploadRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
   '/sales-history': typeof SalesHistoryRoute
   '/alerts': typeof AppAlertsRoute
-  '/invoice-upload/backup': typeof InvoiceUploadBackupRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -132,13 +132,13 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoice-history': typeof InvoiceHistoryRoute
+  '/invoice-upload': typeof InvoiceUploadRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
   '/sales-history': typeof SalesHistoryRoute
   '/_app/alerts': typeof AppAlertsRoute
-  '/invoice-upload/backup': typeof InvoiceUploadBackupRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -150,13 +150,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/invoice-history'
+    | '/invoice-upload'
     | '/login'
     | '/orders'
     | '/profile'
     | '/sales'
     | '/sales-history'
     | '/alerts'
-    | '/invoice-upload/backup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/billing'
@@ -164,13 +164,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/invoice-history'
+    | '/invoice-upload'
     | '/login'
     | '/orders'
     | '/profile'
     | '/sales'
     | '/sales-history'
     | '/alerts'
-    | '/invoice-upload/backup'
     | '/'
   id:
     | '__root__'
@@ -180,13 +180,13 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/invoice-history'
+    | '/invoice-upload'
     | '/login'
     | '/orders'
     | '/profile'
     | '/sales'
     | '/sales-history'
     | '/_app/alerts'
-    | '/invoice-upload/backup'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
@@ -197,12 +197,12 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
   InvoiceHistoryRoute: typeof InvoiceHistoryRoute
+  InvoiceUploadRoute: typeof InvoiceUploadRoute
   LoginRoute: typeof LoginRoute
   OrdersRoute: typeof OrdersRoute
   ProfileRoute: typeof ProfileRoute
   SalesRoute: typeof SalesRoute
   SalesHistoryRoute: typeof SalesHistoryRoute
-  InvoiceUploadBackupRoute: typeof InvoiceUploadBackupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -240,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoice-upload': {
+      id: '/invoice-upload'
+      path: '/invoice-upload'
+      fullPath: '/invoice-upload'
+      preLoaderRoute: typeof InvoiceUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invoice-history': {
@@ -291,13 +298,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/invoice-upload/backup': {
-      id: '/invoice-upload/backup'
-      path: '/invoice-upload/backup'
-      fullPath: '/invoice-upload/backup'
-      preLoaderRoute: typeof InvoiceUploadBackupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app/alerts': {
       id: '/_app/alerts'
       path: '/alerts'
@@ -327,12 +327,12 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
   InvoiceHistoryRoute: InvoiceHistoryRoute,
+  InvoiceUploadRoute: InvoiceUploadRoute,
   LoginRoute: LoginRoute,
   OrdersRoute: OrdersRoute,
   ProfileRoute: ProfileRoute,
   SalesRoute: SalesRoute,
   SalesHistoryRoute: SalesHistoryRoute,
-  InvoiceUploadBackupRoute: InvoiceUploadBackupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
