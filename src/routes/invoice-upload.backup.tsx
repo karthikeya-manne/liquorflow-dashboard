@@ -31,7 +31,7 @@ import toast from "react-hot-toast";
 
 
 export const Route =
-  createFileRoute("/invoice-upload")({
+  createFileRoute("/invoice-upload/backup")({
     component: InvoiceUploadPage,
   });
 
