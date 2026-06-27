@@ -6,28 +6,26 @@ import { useAuth } from "@/lib/auth-context";
 import { isFirebaseConfigured } from "@/lib/firebase";
 
 export const Route = createFileRoute("/_app")({
-  beforeLoad: ({ context, location }) => {
-    if (!isFirebaseConfigured() || typeof window === "undefined") return;
-    if (context.queryClient.getQueryData(["auth", "isLoading"])) return;
-    if (!context.queryClient.getQueryData(["auth", "isAuthenticated"])) {
-      throw redirect({
-        to: "/login",
-        search: { redirect: location.href },
-      });
-    }
+  beforeLoad: () => {
+    return;
   },
   component: AppLayout,
 });
 
 function AppLayout() {
-  const { isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (isFirebaseConfigured() && isLoading) {
+  if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex min-h-screen items-center justify-center">
+        Loading...
       </div>
     );
+  }
+
+  if (!user) {
+    window.location.href = "/login";
+    return null;
   }
 
   return (
@@ -41,3 +39,4 @@ function AppLayout() {
     </SidebarProvider>
   );
 }
+
