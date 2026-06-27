@@ -22,6 +22,8 @@ from "react";
 import PageLoader
 from "../components/PageLoader";
 
+import { useAuth } from "@/lib/auth-context";
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -157,6 +159,39 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AuthGate({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <PageLoader />;
+  }
+
+  const currentPath =
+    window.location.pathname;
+
+  const publicRoutes = [
+    "/login",
+  ];
+
+  if (
+    !user &&
+    !publicRoutes.includes(
+      currentPath
+    )
+  ) {
+    window.location.href =
+      "/login";
+
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
 function RootComponent() {
 
   const { queryClient } =
@@ -191,20 +226,24 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
 
-      <AuthProvider>
+  <AuthProvider>
 
-        <CartProvider>
+    
 
-          <Toaster
-            position="top-right"
-          />
+      <CartProvider>
 
-          <Outlet />
+        <Toaster
+          position="top-right"
+        />
 
-        </CartProvider>
+        <Outlet />
 
-      </AuthProvider>
+      </CartProvider>
 
-    </QueryClientProvider>
+    
+
+  </AuthProvider>
+
+</QueryClientProvider>
   );
 }

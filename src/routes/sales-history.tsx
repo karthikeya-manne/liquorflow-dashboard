@@ -7,6 +7,8 @@ import Sidebar from "../components/Sidebar";
 import PageLoader
 from "../components/PageLoader";
 
+import { savePdf } from "../lib/pdf-download";
+
 export const Route = createFileRoute("/sales-history")({
   component: SalesHistoryPage,
 });
@@ -161,14 +163,14 @@ function SalesHistoryPage() {
 
       const { default: jsPDF } = await import("jspdf");
 const autoTable = (await import("jspdf-autotable")).default;
-
+    
         const doc = new jsPDF();
-      
+    
         const generatedAt =
           new Date().toLocaleString();
       
         doc.setFontSize(20);
-      
+    
         doc.text(
           "LiquorFlow Sales Report",
           14,
@@ -316,12 +318,13 @@ const cardSales =
           14,
           finalY + 8
         );
-      
-        doc.save(
-          `LiquorFlow_Sales_Report_${Date.now()}.pdf`
+    
+        await savePdf(
+          doc,
+          `Sales_History_${Date.now()}.pdf`
         );
-      
-      }
+    
+    }
 
       if (loading) {
 

@@ -11,7 +11,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 
-
+import { savePdf } from "../lib/pdf-download";
 
 import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
 
@@ -42,28 +42,22 @@ function DashboardPage() {
     setLoading] =
     useState(true);
 
-  useEffect(() => {
-
-    const unsubscribe =
-      getFirebaseAuth()
-        .onAuthStateChanged(
-          (user) => {
-  
-            if (user) {
-  
-              setShopId(
-                user.uid
-              );
-  
-            }
-  
+    useEffect(() => {
+      const unsubscribe =
+        getFirebaseAuth().onAuthStateChanged((user) => {
+          console.log("AUTH USER:", user);
+        
+          if (user) {
+            console.log("UID:", user.uid);
+            setShopId(user.uid);
+          } else {
+            console.log("NO USER FOUND");
+            setLoading(false);
           }
-        );
-  
-    return () =>
-      unsubscribe();
-  
-  }, []);
+        });
+    
+      return unsubscribe;
+    }, []);
 
   useEffect(() => {
 
@@ -71,7 +65,7 @@ function DashboardPage() {
   
       await fetchData();
   
-      setLoading(false);
+      
   
     }
   
@@ -148,9 +142,9 @@ function DashboardPage() {
       setSales(salesData);
 
     } catch (error) {
-
       console.error(error);
-
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -466,9 +460,10 @@ const autoTable = (await import("jspdf-autotable")).default;
   
     });
   
-    doc.save(
-      `Purchase_List_${Date.now()}.pdf`
-    );
+await savePdf(
+  doc,
+  `Purchase_List_${Date.now()}.pdf`
+);
   
   }
 
@@ -530,8 +525,8 @@ const autoTable = (await import("jspdf-autotable")).default;
 
     const { default: jsPDF } = await import("jspdf");
 const autoTable = (await import("jspdf-autotable")).default;
-
-    const doc = new jsPDF();
+  
+      const doc = new jsPDF();
   
     const today =
       new Date();
@@ -602,11 +597,11 @@ const autoTable = (await import("jspdf-autotable")).default;
   
     doc.setFontSize(20);
   
-    doc.text(
+      doc.text(
       "LiquorFlow Daily Report",
       14,
-      20
-    );
+        20
+      );
   
     doc.setFontSize(12);
   
@@ -693,9 +688,12 @@ const autoTable = (await import("jspdf-autotable")).default;
       finalY + 30
     );
   
-    doc.save(
-      `Daily_Report_${Date.now()}.pdf`
-    );
+    
+
+await savePdf(
+  doc,
+  `Daily_Report_${Date.now()}.pdf`
+);
   
   }
 
