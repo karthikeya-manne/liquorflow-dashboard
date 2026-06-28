@@ -124,6 +124,14 @@ export default function Sidebar() {
           </Link>
 
           <Link
+  to="/morning-stocks"
+  onClick={closeSidebar}
+  className="bg-zinc-900 hover:bg-zinc-800 transition-all p-4 rounded-xl"
+>
+  🌅 Morning Stock Entry
+</Link>
+
+          <Link
             to="/billing"
             onClick={closeSidebar}
             className="bg-zinc-900 hover:bg-zinc-800 transition-all p-4 rounded-xl"
