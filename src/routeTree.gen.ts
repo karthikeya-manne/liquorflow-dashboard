@@ -13,6 +13,7 @@ import { Route as SalesHistoryRouteImport } from './routes/sales-history'
 import { Route as SalesRouteImport } from './routes/sales'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as MorningStocksRouteImport } from './routes/morning-stocks'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvoiceUploadRouteImport } from './routes/invoice-upload'
 import { Route as InvoiceHistoryRouteImport } from './routes/invoice-history'
@@ -42,6 +43,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MorningStocksRoute = MorningStocksRouteImport.update({
+  id: '/morning-stocks',
+  path: '/morning-stocks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/invoice-history': typeof InvoiceHistoryRoute
   '/invoice-upload': typeof InvoiceUploadRoute
   '/login': typeof LoginRoute
+  '/morning-stocks': typeof MorningStocksRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/invoice-history': typeof InvoiceHistoryRoute
   '/invoice-upload': typeof InvoiceUploadRoute
   '/login': typeof LoginRoute
+  '/morning-stocks': typeof MorningStocksRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/invoice-history': typeof InvoiceHistoryRoute
   '/invoice-upload': typeof InvoiceUploadRoute
   '/login': typeof LoginRoute
+  '/morning-stocks': typeof MorningStocksRoute
   '/orders': typeof OrdersRoute
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/invoice-history'
     | '/invoice-upload'
     | '/login'
+    | '/morning-stocks'
     | '/orders'
     | '/profile'
     | '/sales'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/invoice-history'
     | '/invoice-upload'
     | '/login'
+    | '/morning-stocks'
     | '/orders'
     | '/profile'
     | '/sales'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/invoice-history'
     | '/invoice-upload'
     | '/login'
+    | '/morning-stocks'
     | '/orders'
     | '/profile'
     | '/sales'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   InvoiceHistoryRoute: typeof InvoiceHistoryRoute
   InvoiceUploadRoute: typeof InvoiceUploadRoute
   LoginRoute: typeof LoginRoute
+  MorningStocksRoute: typeof MorningStocksRoute
   OrdersRoute: typeof OrdersRoute
   ProfileRoute: typeof ProfileRoute
   SalesRoute: typeof SalesRoute
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/morning-stocks': {
+      id: '/morning-stocks'
+      path: '/morning-stocks'
+      fullPath: '/morning-stocks'
+      preLoaderRoute: typeof MorningStocksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -329,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvoiceHistoryRoute: InvoiceHistoryRoute,
   InvoiceUploadRoute: InvoiceUploadRoute,
   LoginRoute: LoginRoute,
+  MorningStocksRoute: MorningStocksRoute,
   OrdersRoute: OrdersRoute,
   ProfileRoute: ProfileRoute,
   SalesRoute: SalesRoute,
