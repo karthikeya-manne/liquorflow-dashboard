@@ -130,7 +130,7 @@ return ( <div className="min-h-screen bg-black text-white flex">
   <div className="flex-1 p-6 pt-24">
 
     <h1 className="text-4xl font-bold mb-6">
-      Sales Analytics 📈
+      Sales Analytics 
     </h1>
 
     <div className="grid gap-6 md:grid-cols-3 mb-8">

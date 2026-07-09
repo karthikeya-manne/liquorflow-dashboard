@@ -87,6 +87,7 @@ const [customerPaid, setCustomerPaid] =
     async function loadData() {
   
       await fetchProducts();
+      
   
       setLoading(false);
   
@@ -281,6 +282,7 @@ const [customerPaid, setCustomerPaid] =
       );
   
       fetchProducts();
+      
   
       toast.success(
         "Sale completed successfully 🚀"
@@ -500,7 +502,7 @@ const [customerPaid, setCustomerPaid] =
         {/* Header */}
   
         <h1 className="text-4xl font-bold mb-6">
-          Billing / POS 💵
+          Billing / POS 
         </h1>
   
         {/* Search + Category */}

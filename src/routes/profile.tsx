@@ -338,7 +338,7 @@ return (
           text-4xl
           font-bold
         ">
-          Shop Profile 🏪
+          Shop Profile 
         </h1>
 
         <button
@@ -624,7 +624,7 @@ return (
       font-bold
       mb-6
     ">
-      Change Password 🔒
+      Change Password 
     </h2>
 
     <div className="

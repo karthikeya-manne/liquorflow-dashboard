@@ -320,7 +320,7 @@ toast.success(
                   font-bold
                   mb-8
                 ">
-                  Invoice History 📜
+                  Invoice History 
                 </h1>
           
                 <div className="

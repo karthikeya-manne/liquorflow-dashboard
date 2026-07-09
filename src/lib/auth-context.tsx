@@ -18,6 +18,7 @@ import {
 import { useRouter } from "@tanstack/react-router";
 import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
 import { setRouterAuthState } from "@/lib/auth-types";
+import { syncProducts } from "@/lib/syncProducts";
 
 type AuthContextValue = {
   user: User | null;
@@ -68,11 +69,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (nextUser) => {
+
+      if (nextUser) {
+        
+        await syncProducts(nextUser.uid);
+      }
+    
       setUser(nextUser);
       setIsLoading(false);
       syncRouterAuth(nextUser, false);
       void router.invalidate();
+    
     });
 
     return unsubscribe;

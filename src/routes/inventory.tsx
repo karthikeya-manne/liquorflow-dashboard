@@ -97,6 +97,7 @@ function InventoryPage() {
     async function loadData() {
   
       await fetchProducts();
+      
   
       setLoading(false);
   
@@ -161,7 +162,7 @@ function InventoryPage() {
       );
 
       fetchProducts();
-
+      
     } catch (error) {
 
       console.error(error);
@@ -205,7 +206,7 @@ function InventoryPage() {
       );
 
       fetchProducts();
-
+      
     } catch (error) {
 
       console.error(error);
@@ -303,7 +304,7 @@ function InventoryPage() {
       );
     
       fetchProducts();
-    
+      
     }
 
     if (!shopId) {
@@ -339,7 +340,7 @@ function InventoryPage() {
       <div className="flex-1 p-6 pt-24">
 
         <h1 className="text-5xl font-bold mb-8">
-          Inventory 📦
+          Inventory 
         </h1>
 
         <div className="flex justify-between items-center mb-6">
@@ -360,7 +361,7 @@ function InventoryPage() {
       font-semibold
     "
   >
-    📦 Refill All Stocks
+     Refill All Stocks
   </button>
 
 </div>

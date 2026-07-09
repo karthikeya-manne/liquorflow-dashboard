@@ -11,6 +11,10 @@ import {
 import { getFirebaseAuth, getFirestoreDb } from "../lib/firebase";
 import Sidebar from "../components/Sidebar";
 import toast from "react-hot-toast";
+import { sortProducts } from "../lib/sortProducts";
+import { exportMorningStock } from "../lib/exportMorningStock";
+
+
 
 export const Route = createFileRoute("/morning-stocks")({
   component: MorningStockPage,
@@ -25,6 +29,7 @@ const [totalSold, setTotalSold] = useState(0);
 const [estimatedRevenue, setEstimatedRevenue] = useState(0);
 const [shopId, setShopId] = useState<string | null>(null);
 const [search, setSearch] = useState("");
+const [previewOpen, setPreviewOpen] = useState(false);
 
 useEffect(() => {
 
@@ -64,16 +69,62 @@ useEffect(() => {
     );
 
     const list = snapshot.docs.map((doc) => ({
+
       id: doc.id,
+    
       ...doc.data(),
-      currentStock: doc.data().quantity,
+    
+      // Opening Balance
+      openingStock: Number(doc.data().quantity),
+    
+      // Receipts entered by manager
+      receipts: 0,
+    
+      // Total = OB + Receipts
+      total:
+        Number(doc.data().quantity),
+    
+      // Closing Balance
+      closingStock:
+        Number(doc.data().quantity),
+    
     }));
 
-    setProducts(list);
+    setProducts(sortProducts(list));
+    
     setLoading(false);
   }
 
+  function updateMorningSummary(updatedProducts: any[]) {
 
+    let updatedCount = 0;
+    let totalSales = 0;
+    let revenue = 0;
+  
+    updatedProducts.forEach((item) => {
+  
+      const sales = Math.max(
+        0,
+        Number(item.total) - Number(item.closingStock)
+      );
+  
+      if (
+        Number(item.receipts) > 0 ||
+        Number(item.closingStock) !== Number(item.openingStock)
+      ) {
+        updatedCount++;
+      }
+  
+      totalSales += sales;
+      revenue += sales * Number(item.price);
+  
+    });
+  
+    setProductsUpdated(updatedCount);
+    setTotalSold(totalSales);
+    setEstimatedRevenue(revenue);
+  
+  }
 
   async function saveMorningStock() {
     setSaving(true)
@@ -88,8 +139,8 @@ useEffect(() => {
       for (const product of products) {
   
         const sold =
-          Number(product.quantity) -
-          Number(product.currentStock);
+  Number(product.total) -
+  Number(product.closingStock);
   
         totalSold += sold;
   
@@ -104,7 +155,7 @@ useEffect(() => {
           ),
   
           {
-            quantity: Number(product.currentStock),
+            quantity: Number(product.closingStock),
           }
   
         );
@@ -166,7 +217,7 @@ const today = new Date()
 
 const currentStock = products.reduce(
   (sum, item) =>
-    sum + Number(item.currentStock),
+    sum + Number(item.closingStock),
   0
 );
 
@@ -202,19 +253,50 @@ setSaving(false);
       .toLowerCase()
       .includes(search.toLowerCase())
   );
+  const changedProducts = filteredProducts.filter(
+    (product) =>
+      Number(product.receipts) > 0 ||
+      Number(product.closingStock) !== Number(product.openingStock)
+  );
 
   return (
     <div className="min-h-screen bg-black text-white flex">
       <Sidebar />
       <div className="flex-1 p-6 pt-24">
 
-      <h1 className="text-3xl font-bold text-orange-500">
-        Morning Stock Entry
-      </h1>
+      <div className="flex items-center justify-between mb-6">
 
-      <p className="text-zinc-400 mb-6">
-        Enter the physical stock available in the shop.
-      </p>
+<div>
+  <h1 className="text-3xl font-bold text-orange-500">
+    Morning Stock Entry
+  </h1>
+
+  <p className="text-zinc-400 mt-2">
+    Enter the physical stock available in the shop.
+  </p>
+</div>
+
+<button
+  onClick={async () => {
+    await exportMorningStock(filteredProducts);
+  }}
+  className="
+    bg-green-600
+    hover:bg-green-700
+    px-6
+    py-3
+    rounded-xl
+    font-semibold
+    flex
+    items-center
+    gap-2
+    shadow-lg
+  "
+>
+   Export Morning Stock
+</button>
+
+</div>
 
       <input
   type="text"
@@ -239,99 +321,224 @@ setSaving(false);
 
         <table className="w-full border border-zinc-700">
 
-          <thead>
+        <thead>
 
-            <tr className="bg-zinc-900">
+<tr className="bg-zinc-900">
 
-              <th className="p-3">Product</th>
+<th className="p-3 w-16">S.No</th>
 
-              <th className="p-3">Opening Stock</th>
+<th className="p-3 text-left">Brand</th>
 
-              <th className="p-3">Current Count</th>
+<th className="p-3">OB</th>
 
-              <th className="p-3">Sold</th>
+<th className="p-3">Receipts</th>
 
-            </tr>
+<th className="p-3">Total</th>
 
-          </thead>
+<th className="p-3">CB</th>
+
+<th className="p-3">Sales</th>
+
+<th className="p-3">Rate</th>
+
+<th className="p-3">Amount</th>
+
+</tr>
+
+</thead>
 
           <tbody>
 
-          {filteredProducts.map((product) => (
+          {filteredProducts.map((product, index) => (
 
               <tr
                 key={product.id}
                 className="border-t border-zinc-700"
               >
 
-                <td className="p-3">
-                  {product.name}
-                </td>
+<td className="p-3 text-center">
+  {index + 1}
+</td>
 
-                <td className="p-3 text-center">
-                  {product.quantity}
-                </td>
+<td className="p-3">
+  {product.name}
+</td>
 
-                <td className="p-3">
+{/* Opening Balance */}
 
-                  <input
-                    type="number"
-                    value={product.currentStock}
-                    onChange={(e) => {
+<td className="p-3 text-center">
+  {product.openingStock}
+</td>
 
-                        const value = Number(e.target.value);
-                      
-                        const updated = products.map((item) =>
-                          item.id === product.id
-                            ? {
-                                ...item,
-                                currentStock: value,
-                              }
-                            : item
-                        );
-                      
-                        setProducts(updated);
-                      
-                        let updatedProducts = 0;
-                        let sold = 0;
-                        let revenue = 0;
-                      
-                        updated.forEach((item) => {
-                      
-                          if (item.currentStock != item.quantity) {
-                      
-                            updatedProducts++;
-                      
-                            const qtySold =
-                              Number(item.quantity) -
-                              Number(item.currentStock);
-                      
-                            sold += qtySold;
-                      
-                            revenue += qtySold * Number(item.price);
-                      
-                          }
-                      
-                        });
-                      
-                        setProductsUpdated(updatedProducts);
-                      
-                        setTotalSold(sold);
-                      
-                        setEstimatedRevenue(revenue);
-                      
-                      }}
-                    className="w-24 bg-zinc-800 rounded p-2 text-center"
-                  />
+{/* Receipts */}
 
-                </td>
+<td className="p-3">
 
-                <td className="p-3 text-center">
+  <input
+    type="number"
+    value={product.receipts}
+    onChange={(e) => {
 
-                  {product.quantity -
-                    product.currentStock}
+      const value = Number(e.target.value);
 
-                </td>
+      const updated = [...products];
+
+      const originalIndex = updated.findIndex(
+        (p) => p.id === product.id
+      );
+      
+      updated[originalIndex].receipts = value;
+      
+      updated[originalIndex].total =
+        updated[originalIndex].openingStock +
+        value;
+
+let updatedProducts = 0;
+let sold = 0;
+let revenue = 0;
+
+updated.forEach((item) => {
+
+  const sales =
+    item.total -
+    item.closingStock;
+
+  if (
+    item.receipts > 0 ||
+    item.closingStock !== item.openingStock
+  ) {
+
+    updatedProducts++;
+
+  }
+
+  sold += sales;
+
+  revenue +=
+    sales *
+    Number(item.price);
+
+});
+
+setProducts(updated);
+
+updateMorningSummary(updated);
+
+    }}
+    className="w-20 bg-zinc-800 rounded p-2 text-center"
+  />
+
+</td>
+
+{/* Total */}
+
+<td className="p-3 text-center font-semibold text-blue-400">
+
+  {product.total}
+
+</td>
+
+{/* Closing Balance */}
+
+<td className="p-3">
+
+  <input
+    type="number"
+    value={product.closingStock}
+    onChange={(e) => {
+
+      const value = Number(e.target.value);
+
+const updated = [...products];
+
+if (value > updated[index].total) {
+
+  toast.error(
+    "Closing Stock cannot exceed Total Stock"
+  );
+
+  return;
+
+}
+
+const originalIndex = updated.findIndex(
+  (p) => p.id === product.id
+);
+
+updated[originalIndex].closingStock = value;
+
+let updatedProducts = 0;
+let sold = 0;
+let revenue = 0;
+
+updated.forEach((item) => {
+
+  const sales =
+    item.total -
+    item.closingStock;
+
+  if (
+    item.receipts > 0 ||
+    item.closingStock !== item.openingStock
+  ) {
+
+    updatedProducts++;
+
+  }
+
+  sold += sales;
+
+  revenue +=
+    sales *
+    Number(item.price);
+
+});
+
+setProducts(updated);
+
+updateMorningSummary(updated);
+
+    }}
+    className="w-20 bg-zinc-800 rounded p-2 text-center"
+  />
+
+</td>
+
+{/* Sales */}
+
+<td className="p-3 text-center text-red-400 font-semibold">
+
+  {Math.max(
+  0,
+  product.total -
+  product.closingStock
+)}
+
+</td>
+
+{/* Rate */}
+
+<td className="p-3 text-center">
+
+₹{product.price}
+
+</td>
+
+{/* Amount */}
+
+<td className="p-3 text-center text-green-400 font-bold">
+
+₹{
+Math.max(
+  0,
+  product.total -
+  product.closingStock
+)
+*
+Number(product.price)
+}
+
+</td>
 
               </tr>
 
@@ -396,7 +603,7 @@ setSaving(false);
     </div>
 
     <button
-      onClick={saveMorningStock}
+      onClick={() => setPreviewOpen(true)}
       disabled={saving || productsUpdated === 0}
       className={`
         mt-5
@@ -418,14 +625,189 @@ setSaving(false);
     >
 
       {saving
-        ? "⏳ Saving..."
-        : "💾 Save Morning Stock"}
+        ? " Saving..."
+        : " Save Morning Stock"}
 
     </button>
 
   </div>
 
 </div>
+{previewOpen && (
+
+<div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+
+<div className="bg-zinc-900 rounded-2xl w-[900px] max-h-[85vh] overflow-hidden">
+
+<div className="p-6 border-b border-zinc-700">
+
+<h2 className="text-2xl font-bold text-orange-500">
+
+Morning Stock Preview
+
+</h2>
+
+<p className="text-zinc-400">
+
+Verify the entries before saving.
+
+</p>
+
+</div>
+<div className="max-h-[500px] overflow-y-auto">
+
+<table className="w-full">
+
+<thead className="sticky top-0 bg-zinc-800">
+
+<tr>
+
+<th>S.No</th>
+
+<th>Brand</th>
+
+<th>OB</th>
+
+<th>Rec.</th>
+
+<th>Total</th>
+
+<th>CB</th>
+
+<th>Sales</th>
+
+<th>Amount</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{changedProducts.map((product,index)=>{
+
+const sales = Math.max(
+  0,
+  product.total - product.closingStock
+);
+
+return(
+
+<tr
+key={product.id}
+className="border-b border-zinc-800"
+>
+
+<td>{index+1}</td>
+
+<td>{product.name}</td>
+
+<td>{product.openingStock}</td>
+
+<td>{product.receipts}</td>
+
+<td>{product.total}</td>
+
+<td>{product.closingStock}</td>
+
+<td>{sales}</td>
+
+<td>
+₹{sales*product.price}
+</td>
+
+</tr>
+
+);
+
+})}
+
+</tbody>
+
+</table>
+
+</div>
+<div className="p-6 border-t border-zinc-700 flex justify-between">
+
+<div>
+
+<p>
+
+Products Updated :
+<strong>
+{productsUpdated}
+</strong>
+
+</p>
+
+<p>
+
+Bottles Sold :
+<strong>
+{totalSold}
+</strong>
+
+</p>
+
+<p>
+
+Revenue :
+<strong>
+
+₹{estimatedRevenue}
+
+</strong>
+
+</p>
+
+</div>
+
+<div className="flex gap-3">
+
+  <button
+    onClick={() => setPreviewOpen(false)}
+    className="
+      bg-yellow-500
+      hover:bg-yellow-600
+      px-4
+      py-2
+      rounded-lg
+      text-sm
+      font-medium
+      transition
+    "
+  >
+     Edit
+  </button>
+
+  <button
+    onClick={async () => {
+      setPreviewOpen(false);
+      await saveMorningStock();
+    }}
+    className="
+      bg-green-600
+      hover:bg-green-700
+      px-4
+      py-2
+      rounded-lg
+      text-sm
+      font-medium
+      transition
+    "
+  >
+     Save
+  </button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+)}
     </div> 
   );
 }

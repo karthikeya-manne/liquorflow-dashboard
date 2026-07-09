@@ -342,7 +342,7 @@ const cardSales =
       <div className="flex justify-between items-center mb-8">
 
   <h1 className="text-5xl font-bold">
-    Sales History 📜
+    Sales History 
   </h1>
 
   <button
@@ -357,7 +357,7 @@ const cardSales =
       transition-all
     "
   >
-    📄 Download PDF
+     Download PDF
   </button>
 
 </div>
@@ -580,7 +580,7 @@ const cardSales =
 {sale.paymentMethod === "Morning Stock" ? (
 
 <p className="text-blue-400 text-sm font-semibold">
-  🌅 Morning Stock Entry
+   Morning Stock Entry
 </p>
 
 ) : (

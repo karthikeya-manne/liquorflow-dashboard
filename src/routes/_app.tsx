@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import  Sidebar  from "@/components/Sidebar";
 import { useAuth } from "@/lib/auth-context";
 import { isFirebaseConfigured } from "@/lib/firebase";
+import { Navigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: () => {
@@ -24,7 +25,7 @@ function AppLayout() {
   }
 
   if (!user) {
-    window.location.href = "/login";
+    return <Navigate to="/login" />;
     return null;
   }
 

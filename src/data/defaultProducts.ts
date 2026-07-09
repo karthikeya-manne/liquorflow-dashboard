@@ -55,7 +55,6 @@ export const defaultProducts = [
     { name: "William Lawson (N)", category: "Whisky", quantity: 0, price: 550 },
   
     { name: "R.Ranthambare (Q)", category: "Whisky", quantity: 0, price: 2400 },
-    { name: "R.Ranthambare (P)", category: "Whisky", quantity: 0, price: 1200 },
     { name: "R.Ranthambare (N)", category: "Whisky", quantity: 0, price: 600 },
   
     { name: "Black & White (Q)", category: "Whisky", quantity: 0, price: 2080 },
@@ -175,7 +174,12 @@ export const defaultProducts = [
     { name: "8 P.M. (D)", category: "Whisky", quantity: 0, price: 120 },
   
     // ================= LOCAL WHISKY =================
-  
+    { name: "M.H. Whisky (Q)", category: "Whisky", quantity: 0, price: 920 },
+    { name: "M.H. Whisky (P)", category: "Whisky", quantity: 0, price: 460 },
+    { name: "M.H. Whisky (N)", category: "Whisky", quantity: 0, price: 230 },
+    { name: "M.H. Whisky (D)", category: "Whisky", quantity: 0, price: 115 },
+
+
     { name: "M.H. (F) (Q)", category: "Whisky", quantity: 0, price: 880 },
     { name: "M.H. (F) (P)", category: "Whisky", quantity: 0, price: 440 },
     { name: "M.H. (F) (N)", category: "Whisky", quantity: 0, price: 220 },
@@ -243,6 +247,16 @@ export const defaultProducts = [
     { name: "M.H. Brandy (P)", category: "Brandy", quantity: 0, price: 370 },
     { name: "M.H. Brandy (N)", category: "Brandy", quantity: 0, price: 180 },
     { name: "M.H. Brandy (D)", category: "Brandy", quantity: 0, price: 100 },
+
+    { name: "Xclamation Rum (Q)", category: "Rum", quantity: 0, price: 1200 },
+    { name: "Xclamation Rum (P)", category: "Rum", quantity: 0, price: 600 },
+    { name: "Xclamation Rum (N)", category: "Rum", quantity: 0, price: 300 },
+    { name: "Xclamation Rum (D)", category: "Rum", quantity: 0, price: 150 },
+
+    { name: "Xclamation Vodka (Q)", category: "Vodka", quantity: 0, price: 1200 },
+    { name: "Xclamation Vodka (P)", category: "Vodka", quantity: 0, price: 600 },
+    { name: "Xclamation Vodka (N)", category: "Vodka", quantity: 0, price: 300 },
+    { name: "Xclamation Vodka (D)", category: "Vodka", quantity: 0, price: 150 },
   
     // ================= VODKA =================
   
@@ -262,10 +276,7 @@ export const defaultProducts = [
     { name: "Smirnoff Plain (P)", category: "Vodka", quantity: 0, price: 620 },
     { name: "Smirnoff Plain (N)", category: "Vodka", quantity: 0, price: 310 },
   
-    { name: "Xclamation Vodka (Q)", category: "Vodka", quantity: 0, price: 1200 },
-    { name: "Xclamation Vodka (P)", category: "Vodka", quantity: 0, price: 600 },
-    { name: "Xclamation Vodka (N)", category: "Vodka", quantity: 0, price: 300 },
-    { name: "Xclamation Vodka (D)", category: "Vodka", quantity: 0, price: 150 },
+
   
     // ================= RUM =================
   
@@ -277,10 +288,7 @@ export const defaultProducts = [
     { name: "Old Monk Rum (P)", category: "Rum", quantity: 0, price: 380 },
     { name: "Old Monk Rum (N)", category: "Rum", quantity: 0, price: 190 },
   
-    { name: "Xclamation Rum (Q)", category: "Rum", quantity: 0, price: 1200 },
-    { name: "Xclamation Rum (P)", category: "Rum", quantity: 0, price: 600 },
-    { name: "Xclamation Rum (N)", category: "Rum", quantity: 0, price: 300 },
-    { name: "Xclamation Rum (D)", category: "Rum", quantity: 0, price: 150 },
+
   
     // ================= WINE =================
   
@@ -317,16 +325,20 @@ export const defaultProducts = [
   
     { name: "K.F. Ultra", category: "Beer", quantity: 0, price: 250 },
     { name: "K.F. Strong", category: "Beer", quantity: 0, price: 190 },
-    { name: "K.F. Light", category: "Beer", quantity: 0, price: 180 },
+    
   
     { name: "Knockout", category: "Beer", quantity: 0, price: 190 },
   
     { name: "Tuborg Strong", category: "Beer", quantity: 0, price: 190 },
-    { name: "Tuborg Light", category: "Beer", quantity: 0, price: 180 },
+    
   
     { name: "Haywards 5000", category: "Beer", quantity: 0, price: 190 },
+
+    { name: "K.F. Light", category: "Beer", quantity: 0, price: 180 },
   
     { name: "R.C.", category: "Beer", quantity: 0, price: 180 },
+
+    { name: "Tuborg Light", category: "Beer", quantity: 0, price: 180 },
   
     { name: "Green Deer", category: "Beer", quantity: 0, price: 180 },
   

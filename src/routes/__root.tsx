@@ -23,6 +23,7 @@ import PageLoader
 from "../components/PageLoader";
 
 import { useAuth } from "@/lib/auth-context";
+import { Navigate } from "@tanstack/react-router";
 
 function NotFoundComponent() {
   return (
@@ -170,8 +171,10 @@ function AuthGate({
     return <PageLoader />;
   }
 
-  const currentPath =
-    window.location.pathname;
+  const router = useRouter();
+
+const currentPath =
+router.state.location.pathname;
 
   const publicRoutes = [
     "/login",
@@ -183,7 +186,7 @@ function AuthGate({
       currentPath
     )
   ) {
-    window.location.href =
+    return <Navigate to="/login" />;
       "/login";
 
     return null;
@@ -226,24 +229,22 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
 
-  <AuthProvider>
-
-    
-
-      <CartProvider>
-
-        <Toaster
-          position="top-right"
-        />
-
-        <Outlet />
-
-      </CartProvider>
-
-    
-
-  </AuthProvider>
-
-</QueryClientProvider>
+    <AuthProvider>
+  
+      <AuthGate>
+  
+        <CartProvider>
+  
+          <Toaster position="top-right" />
+  
+          <Outlet />
+  
+        </CartProvider>
+  
+      </AuthGate>
+  
+    </AuthProvider>
+  
+  </QueryClientProvider>
   );
 }
