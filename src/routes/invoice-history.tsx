@@ -19,6 +19,8 @@ import {
   import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route =
   createFileRoute(
     "/invoice-history"
@@ -58,34 +60,9 @@ function InvoiceHistoryPage() {
                             setLoading] =
                             useState(true);
 
-                            const [shopId,
-                                setShopId] =
-                                useState<string | null>(
-                                  null
-                                );
+                            
 
-                                useEffect(() => {
-
-                                    const unsubscribe =
-                                      getFirebaseAuth()
-                                        .onAuthStateChanged(
-                                          (user) => {
-                                  
-                                            if (user) {
-                                  
-                                              setShopId(
-                                                user.uid
-                                              );
-                                  
-                                            }
-                                  
-                                          }
-                                        );
-                                  
-                                    return () =>
-                                      unsubscribe();
-                                  
-                                  }, []);
+                            const shopId = getCurrentShopId();
 
           useEffect(() => {
 

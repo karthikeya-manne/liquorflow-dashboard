@@ -19,17 +19,15 @@ import toast from "react-hot-toast";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/inventory")({
   component: InventoryPage,
 });
 
 function InventoryPage() {
 
-  const [shopId,
-    setShopId] =
-    useState<string | null>(
-      null
-    );
+
 
   const [products, setProducts] =
     useState<any[]>([]);
@@ -48,28 +46,8 @@ function InventoryPage() {
         setLoading] =
         useState(true);
 
-  useEffect(() => {
-
-    const unsubscribe =
-      getFirebaseAuth()
-        .onAuthStateChanged(
-          (user) => {
+        const shopId = getCurrentShopId();
   
-            if (user) {
-  
-              setShopId(
-                user.uid
-              );
-  
-            }
-  
-          }
-        );
-  
-    return () =>
-      unsubscribe();
-  
-  }, []);
 
   useEffect(() => {
 
@@ -159,50 +137,6 @@ function InventoryPage() {
           "products",
           id
         )
-      );
-
-      fetchProducts();
-      
-    } catch (error) {
-
-      console.error(error);
-
-    }
-  }
-
-  async function editProduct(
-    id: string,
-    quantity: number,
-    price: number
-  ) {
-
-    const newQuantity = prompt(
-      "Enter quantity",
-      quantity.toString()
-    );
-
-    const newPrice = prompt(
-      "Enter price",
-      price.toString()
-    );
-
-    if (!newQuantity || !newPrice)
-      return;
-
-    try {
-
-      await updateDoc(
-        doc(
-          getFirestoreDb(),
-          "shops",
-          shopId!,
-          "products",
-          id
-        ),
-        {
-          quantity: Number(newQuantity),
-          price: Number(newPrice),
-        }
       );
 
       fetchProducts();
@@ -441,19 +375,6 @@ function InventoryPage() {
                 </div>
 
                 <div className="flex gap-3">
-
-                  <button
-                    onClick={() =>
-                      editProduct(
-                        product.id,
-                        product.quantity,
-                        product.price
-                      )
-                    }
-                    className="bg-blue-500 hover:bg-blue-600 px-5 py-2 rounded-xl"
-                  >
-                    Edit
-                  </button>
 
                   <button
                     onClick={() =>

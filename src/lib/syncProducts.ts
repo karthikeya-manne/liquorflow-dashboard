@@ -1,6 +1,7 @@
 import {
     collection,
     getDocs,
+  getDoc,
     addDoc,
     updateDoc,
     doc,
@@ -8,11 +9,21 @@ import {
   } from "firebase/firestore";
   
   import { defaultProducts } from "../data/defaultProducts";
+import { walkInProducts } from "../data/walkInProducts";
   import { getFirestoreDb } from "./firebase";
   
   export async function syncProducts(shopId: string) {
   
     const db = getFirestoreDb();
+    const shopDoc = await getDoc(
+      doc(db, "shops", shopId)
+    );
+    
+    const shopData = shopDoc.data();
+    const products =
+  shopData?.shopCategory === "Walk-in"
+    ? walkInProducts
+    : defaultProducts;
   
     const snapshot = await getDocs(
       collection(db, "shops", shopId, "products")
@@ -23,10 +34,12 @@ import {
       ...d.data(),
     })) as any[];
   
-    for (const product of defaultProducts) {
+    for (const product of products) {
   
       const existing = firestoreProducts.find(
-        (p) => p.name === product.name
+        (p) =>
+          p.name.trim().toLowerCase() ===
+          product.name.trim().toLowerCase()
       );
   
       if (!existing) {
@@ -74,8 +87,10 @@ import {
     // Remove products that are no longer in defaultProducts
 for (const firestoreProduct of firestoreProducts) {
 
-    const existsInDefault = defaultProducts.some(
-      (product) => product.name === firestoreProduct.name
+  const existsInDefault = products.some(
+    (product) =>
+      product.name.trim().toLowerCase() ===
+      firestoreProduct.name.trim().toLowerCase()
     );
   
     if (

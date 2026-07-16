@@ -16,9 +16,18 @@ import {
   type User,
 } from "firebase/auth";
 import { useRouter } from "@tanstack/react-router";
-import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
+import {
+  getFirebaseAuth,
+  getFirestoreDb,
+  isFirebaseConfigured,
+} from "@/lib/firebase";
 import { setRouterAuthState } from "@/lib/auth-types";
 import { syncProducts } from "@/lib/syncProducts";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 
 type AuthContextValue = {
   user: User | null;
@@ -71,9 +80,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (nextUser) => {
 
-      if (nextUser) {
-        
-        await syncProducts(nextUser.uid);
+      try {
+    
+        if (nextUser) {
+    
+          const db = getFirestoreDb();
+    
+          const shopRef = doc(
+            db,
+            "shops",
+            nextUser.uid
+          );
+    
+          const shopSnap = await getDoc(shopRef);
+    
+          if (shopSnap.exists()) {
+    
+            const data = shopSnap.data();
+    
+            if (data.ownerEmail !== nextUser.email) {
+    
+              await updateDoc(shopRef, {
+                ownerEmail: nextUser.email,
+              });
+    
+            }
+    
+          }
+    
+        }
+    
+      } catch (error) {
+    
+        console.error("Failed to sync email:", error);
+    
       }
     
       setUser(nextUser);

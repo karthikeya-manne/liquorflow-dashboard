@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SelectShopRouteImport } from './routes/select-shop'
 import { Route as SalesHistoryRouteImport } from './routes/sales-history'
 import { Route as SalesRouteImport } from './routes/sales'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -19,12 +20,18 @@ import { Route as InvoiceUploadRouteImport } from './routes/invoice-upload'
 import { Route as InvoiceHistoryRouteImport } from './routes/invoice-history'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CreateShopRouteImport } from './routes/create-shop'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppAlertsRouteImport } from './routes/_app.alerts'
 
+const SelectShopRoute = SelectShopRouteImport.update({
+  id: '/select-shop',
+  path: '/select-shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SalesHistoryRoute = SalesHistoryRouteImport.update({
   id: '/sales-history',
   path: '/sales-history',
@@ -75,6 +82,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreateShopRoute = CreateShopRouteImport.update({
+  id: '/create-shop',
+  path: '/create-shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
@@ -104,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/billing': typeof BillingRoute
   '/cart': typeof CartRoute
+  '/create-shop': typeof CreateShopRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoice-history': typeof InvoiceHistoryRoute
@@ -114,11 +127,13 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
   '/sales-history': typeof SalesHistoryRoute
+  '/select-shop': typeof SelectShopRoute
   '/alerts': typeof AppAlertsRoute
 }
 export interface FileRoutesByTo {
   '/billing': typeof BillingRoute
   '/cart': typeof CartRoute
+  '/create-shop': typeof CreateShopRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoice-history': typeof InvoiceHistoryRoute
@@ -129,6 +144,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
   '/sales-history': typeof SalesHistoryRoute
+  '/select-shop': typeof SelectShopRoute
   '/alerts': typeof AppAlertsRoute
   '/': typeof AppIndexRoute
 }
@@ -137,6 +153,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/billing': typeof BillingRoute
   '/cart': typeof CartRoute
+  '/create-shop': typeof CreateShopRoute
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/invoice-history': typeof InvoiceHistoryRoute
@@ -147,6 +164,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/sales': typeof SalesRoute
   '/sales-history': typeof SalesHistoryRoute
+  '/select-shop': typeof SelectShopRoute
   '/_app/alerts': typeof AppAlertsRoute
   '/_app/': typeof AppIndexRoute
 }
@@ -156,6 +174,7 @@ export interface FileRouteTypes {
     | '/'
     | '/billing'
     | '/cart'
+    | '/create-shop'
     | '/dashboard'
     | '/inventory'
     | '/invoice-history'
@@ -166,11 +185,13 @@ export interface FileRouteTypes {
     | '/profile'
     | '/sales'
     | '/sales-history'
+    | '/select-shop'
     | '/alerts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/billing'
     | '/cart'
+    | '/create-shop'
     | '/dashboard'
     | '/inventory'
     | '/invoice-history'
@@ -181,6 +202,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/sales'
     | '/sales-history'
+    | '/select-shop'
     | '/alerts'
     | '/'
   id:
@@ -188,6 +210,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/billing'
     | '/cart'
+    | '/create-shop'
     | '/dashboard'
     | '/inventory'
     | '/invoice-history'
@@ -198,6 +221,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/sales'
     | '/sales-history'
+    | '/select-shop'
     | '/_app/alerts'
     | '/_app/'
   fileRoutesById: FileRoutesById
@@ -206,6 +230,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   BillingRoute: typeof BillingRoute
   CartRoute: typeof CartRoute
+  CreateShopRoute: typeof CreateShopRoute
   DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
   InvoiceHistoryRoute: typeof InvoiceHistoryRoute
@@ -216,10 +241,18 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SalesRoute: typeof SalesRoute
   SalesHistoryRoute: typeof SalesHistoryRoute
+  SelectShopRoute: typeof SelectShopRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/select-shop': {
+      id: '/select-shop'
+      path: '/select-shop'
+      fullPath: '/select-shop'
+      preLoaderRoute: typeof SelectShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sales-history': {
       id: '/sales-history'
       path: '/sales-history'
@@ -290,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/create-shop': {
+      id: '/create-shop'
+      path: '/create-shop'
+      fullPath: '/create-shop'
+      preLoaderRoute: typeof CreateShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cart': {
       id: '/cart'
       path: '/cart'
@@ -344,6 +384,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   BillingRoute: BillingRoute,
   CartRoute: CartRoute,
+  CreateShopRoute: CreateShopRoute,
   DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
   InvoiceHistoryRoute: InvoiceHistoryRoute,
@@ -354,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SalesRoute: SalesRoute,
   SalesHistoryRoute: SalesHistoryRoute,
+  SelectShopRoute: SelectShopRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -7,14 +7,14 @@ import {
     updateDoc,
     addDoc,
     Timestamp,
+    getDoc,
   } from "firebase/firestore";
-import { getFirebaseAuth, getFirestoreDb } from "../lib/firebase";
+import { getFirestoreDb } from "../lib/firebase";
 import Sidebar from "../components/Sidebar";
 import toast from "react-hot-toast";
 import { sortProducts } from "../lib/sortProducts";
 import { exportMorningStock } from "../lib/exportMorningStock";
-
-
+import { getCurrentShopId } from "@/lib/currentShop";
 
 export const Route = createFileRoute("/morning-stocks")({
   component: MorningStockPage,
@@ -27,24 +27,11 @@ function MorningStockPage() {
 const [productsUpdated, setProductsUpdated] = useState(0);
 const [totalSold, setTotalSold] = useState(0);
 const [estimatedRevenue, setEstimatedRevenue] = useState(0);
-const [shopId, setShopId] = useState<string | null>(null);
 const [search, setSearch] = useState("");
 const [previewOpen, setPreviewOpen] = useState(false);
 
-useEffect(() => {
-
-    const unsubscribe =
-      getFirebaseAuth().onAuthStateChanged((user) => {
+const shopId = getCurrentShopId();
   
-        if (user) {
-          setShopId(user.uid);
-        }
-  
-      });
-  
-    return () => unsubscribe();
-  
-  }, []);
   
   useEffect(() => {
   
@@ -90,7 +77,16 @@ useEffect(() => {
     
     }));
 
-    setProducts(sortProducts(list));
+    const shopDoc = await getDoc(
+      doc(getFirestoreDb(), "shops", shopId)
+    );
+    
+    const shopCategory =
+      shopDoc.data()?.shopCategory;
+    
+    setProducts(
+      sortProducts(list, shopCategory)
+    );
     
     setLoading(false);
   }
@@ -128,9 +124,10 @@ useEffect(() => {
 
   async function saveMorningStock() {
     setSaving(true)
-    const user = getFirebaseAuth().currentUser;
-  
-    if (!user) return;
+    if (!shopId) {
+      toast.error("No shop selected");
+      return;
+    }
   
     try {
   
@@ -149,7 +146,7 @@ useEffect(() => {
           doc(
             getFirestoreDb(),
             "shops",
-            user.uid,
+            shopId,
             "products",
             product.id
           ),

@@ -26,13 +26,13 @@ import toast from "react-hot-toast";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/billing")({
   component: BillingPage,
 });
 
 function BillingPage() {
-
-  const [shopId, setShopId] = useState<string | null>(null);
 
   const [products, setProducts] =
     useState<any[]>([]);
@@ -59,28 +59,7 @@ const [customerPaid, setCustomerPaid] =
     >;
   };
 
-  useEffect(() => {
-
-    const unsubscribe =
-      getFirebaseAuth()
-        .onAuthStateChanged(
-          (user) => {
-  
-            if (user) {
-  
-              setShopId(
-                user.uid
-              );
-  
-            }
-  
-          }
-        );
-  
-    return () =>
-      unsubscribe();
-  
-  }, []);
+  const shopId = getCurrentShopId();
 
   useEffect(() => {
 

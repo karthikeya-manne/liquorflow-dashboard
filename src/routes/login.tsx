@@ -8,10 +8,8 @@ import {
 } from "firebase/auth";
 
 import {
-  doc,
-  setDoc,
-  collection,
   addDoc,
+  collection,
 } from "firebase/firestore";
 
 import {
@@ -19,7 +17,7 @@ import {
   getFirestoreDb,
 } from "../lib/firebase";
 
-  import { defaultProducts } from "../data/defaultProducts";
+  import { syncProducts } from "../lib/syncProducts";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -32,6 +30,9 @@ function LoginPage() {
 
   const [shopName, setShopName] =
     useState("");
+
+    const [shopCategory, setShopCategory] =
+  useState("Wines");
 
   const [email, setEmail] =
     useState("");
@@ -76,28 +77,25 @@ function LoginPage() {
         const uid =
           userCredential.user.uid;
 
-        await setDoc(
-          doc(getFirestoreDb(), "shops", uid),
+          const shopRef = await addDoc(
+            collection(getFirestoreDb(), "shops"),
           {
-            shopName: shopName,
+              ownerUid: uid,
+              shopName,
+              shopCategory,
             ownerEmail: email,
             createdAt: new Date(),
           }
         );
 
-        for (const product of defaultProducts) {
+          const shopId = shopRef.id;
 
-          await addDoc(
-            collection(
-              getFirestoreDb(),
-              "shops",
-              uid,
-              "products"
-            ),
-            product
-          );
+          await syncProducts(shopId);
 
-        }
+          localStorage.setItem(
+            "selectedShopId",
+            shopId
+        );
 
       } else {
 
@@ -107,10 +105,11 @@ function LoginPage() {
           password
         );
 
+
       }
 
       window.location.href =
-        "/dashboard";
+"/select-shop";
 
     } catch (err: any) {
 
@@ -149,17 +148,24 @@ Inventory & Billing Solution
         <div className="space-y-4">
 
           {isSignup && (
-
+  <>
             <input
               type="text"
               placeholder="Shop Name"
               value={shopName}
-              onChange={(e) =>
-                setShopName(e.target.value)
-              }
+      onChange={(e) => setShopName(e.target.value)}
               className="w-full p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white"
             />
 
+    <select
+      value={shopCategory}
+      onChange={(e) => setShopCategory(e.target.value)}
+      className="w-full p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white"
+    >
+      <option value="Wines">Wines</option>
+      <option value="Walk-in">Walk-in</option>
+    </select>
+  </>
           )}
 
           <input
@@ -201,7 +207,7 @@ Inventory & Billing Solution
             {loading
               ? "Please wait..."
               : isSignup
-              ? "Create Shop Account"
+              ? "Create Account"
               : "Login"}
 
           </button>
@@ -217,7 +223,7 @@ Inventory & Billing Solution
 
           {isSignup
             ? "Already have an account? Login"
-            : "Create New Shop Account"}
+            : "Create Account"}
 
         </button>
 

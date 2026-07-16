@@ -14,6 +14,8 @@ import Sidebar from "../components/Sidebar";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/sales")({
 component: SalesPage,
 });
@@ -26,34 +28,8 @@ const [loading,
   setLoading] =
   useState(true);
 
-const [shopId,
-  setShopId] =
-  useState<string | null>(
-    null
-  );
-
-  useEffect(() => {
-
-    const unsubscribe =
-      getFirebaseAuth()
-        .onAuthStateChanged(
-          (user) => {
+  const shopId = getCurrentShopId();
   
-            if (user) {
-  
-              setShopId(
-                user.uid
-              );
-  
-            }
-  
-          }
-        );
-  
-    return () =>
-      unsubscribe();
-  
-  }, []);
 
   useEffect(() => {
 

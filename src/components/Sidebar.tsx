@@ -6,6 +6,8 @@ import { signOut } from "firebase/auth";
 
 import { getFirebaseAuth } from "../lib/firebase";
 
+import ShopSwitcher from "./ShopSwitcher";
+
 export default function Sidebar() {
 
   const [isOpen, setIsOpen] =
@@ -105,7 +107,13 @@ export default function Sidebar() {
 
 </div>
 
-<div className="mt-20 flex flex-col gap-4 pb-24">
+<div className="mt-20">
+
+  <ShopSwitcher />
+
+</div>
+
+<div className="mt-6 flex flex-col gap-4 pb-24">
 
           <Link
             to="/dashboard"

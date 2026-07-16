@@ -9,16 +9,13 @@ from "../components/PageLoader";
 
 import { savePdf } from "../lib/pdf-download";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/sales-history")({
   component: SalesHistoryPage,
 });
 
 function SalesHistoryPage() {
-  const [shopId,
-    setShopId] =
-    useState<string | null>(
-      null
-    );
 
   const [sales, setSales] =
     useState<any[]>([]);
@@ -36,28 +33,7 @@ function SalesHistoryPage() {
       setLoading] =
       useState(true);
 
-    useEffect(() => {
-
-      const unsubscribe =
-        getFirebaseAuth()
-          .onAuthStateChanged(
-            (user) => {
-    
-              if (user) {
-    
-                setShopId(
-                  user.uid
-                );
-    
-              }
-    
-            }
-          );
-    
-      return () =>
-        unsubscribe();
-    
-    }, []);
+      const shopId = getCurrentShopId();
 
     useEffect(() => {
 

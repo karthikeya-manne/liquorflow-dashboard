@@ -25,6 +25,8 @@ import toast from "react-hot-toast";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/profile")({
 component: ProfilePage,
 });
@@ -32,12 +34,6 @@ component: ProfilePage,
 function ProfilePage() {
 
 const [shopData, setShopData] = useState<any>(null);
-
-const [shopId,
-  setShopId] =
-  useState<string | null>(
-    null
-  );
 
 const [isEditing,
   setIsEditing] =
@@ -75,28 +71,7 @@ const [email,
         setLoading] =
         useState(true);
 
-      useEffect(() => {
-
-        const unsubscribe =
-          getFirebaseAuth()
-            .onAuthStateChanged(
-              (user) => {
-      
-                if (user) {
-      
-                  setShopId(
-                    user.uid
-                  );
-      
-                }
-      
-              }
-            );
-      
-        return () =>
-          unsubscribe();
-      
-      }, []);
+        const shopId = getCurrentShopId();
 
 useEffect(() => {
 
@@ -133,31 +108,47 @@ useEffect(() => {
 
 async function fetchShopData() {
 
+  if (!shopId) return;
 
-if (!shopId) return;
+  try {
 
-try {
+    const user = getFirebaseAuth().currentUser;
 
-  const docRef = doc(
-    getFirestoreDb(),
-    "shops",
-    shopId
-  );
+    const docRef = doc(
+      getFirestoreDb(),
+      "shops",
+      shopId
+    );
 
-  const docSnap = await getDoc(docRef);
+    const docSnap = await getDoc(docRef);
 
-  if (docSnap.exists()) {
+    if (docSnap.exists()) {
 
-    setShopData(docSnap.data());
+      const data = docSnap.data();
+
+      // Sync Firestore email with Firebase Auth email
+      if (
+        user &&
+        user.email &&
+        data.ownerEmail !== user.email
+      ) {
+
+        await updateDoc(docRef, {
+          ownerEmail: user.email,
+        });
+
+        data.ownerEmail = user.email;
+      }
+
+      setShopData(data);
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
 
   }
-
-} catch (error) {
-
-  console.error(error);
-
-}
-
 
 }
 

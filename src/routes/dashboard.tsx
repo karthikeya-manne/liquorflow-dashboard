@@ -20,6 +20,8 @@ import Sidebar from "../components/Sidebar";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
@@ -35,47 +37,20 @@ function DashboardPage() {
     const [openingStock, setOpeningStock] =
   useState<number>(0);
 
-  const [shopId, setShopId] =
-  useState<string | null>(null);
 
   const [loading,
     setLoading] =
     useState(true);
 
+const shopId = getCurrentShopId();
+
     useEffect(() => {
-      const unsubscribe =
-        getFirebaseAuth().onAuthStateChanged((user) => {
-          console.log("AUTH USER:", user);
-        
-          if (user) {
-            console.log("UID:", user.uid);
-            setShopId(user.uid);
-          } else {
-            console.log("NO USER FOUND");
-            setLoading(false);
-          }
-        });
-    
-      return unsubscribe;
+
+  fetchData();
+
     }, []);
 
-  useEffect(() => {
 
-    async function loadData() {
-  
-      await fetchData();
-      
-      setLoading(false);
-  
-    }
-  
-    if (shopId) {
-  
-      loadData();
-  
-    }
-  
-  }, [shopId]);
 
     const [purchaseQty, setPurchaseQty] =
   useState<Record<string, number>>({});

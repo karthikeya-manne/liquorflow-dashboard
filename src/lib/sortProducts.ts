@@ -1,16 +1,23 @@
 import { defaultProducts } from "../data/defaultProducts";
+import { walkInProducts } from "../data/walkInProducts";
 
-export function sortProducts(products: any[]) {
+export function sortProducts(
+  products: any[],
+  shopCategory?: string
+) {
+
+  const productOrder =
+    shopCategory === "Walk-in"
+      ? walkInProducts
+      : defaultProducts;
 
   return [...products].sort((a, b) => {
 
-    const aIndex =
-      defaultProducts.findIndex(
+    const aIndex = productOrder.findIndex(
         (p) => p.name === a.name
       );
 
-    const bIndex =
-      defaultProducts.findIndex(
+    const bIndex = productOrder.findIndex(
         (p) => p.name === b.name
       );
 
