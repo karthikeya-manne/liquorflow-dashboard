@@ -28,6 +28,7 @@ import toast from "react-hot-toast";
 
 export const Route =
   createFileRoute("/invoice-upload")({
+    ssr: false,
     component: InvoiceUploadPage,
   });
 
@@ -94,46 +95,65 @@ function InvoiceUploadPage() {
       file.name
     );
   
-    const arrayBuffer =
-      await file.arrayBuffer();
-
-      const pdfjsLib = await import("pdfjs-dist");
-const pdfWorker = (
-  await import("pdfjs-dist/build/pdf.worker.js?url")
-).default;
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
-  
-    const pdf =
-      await pdfjsLib.getDocument({
-        data: arrayBuffer,
-      }).promise;
-  
     let fullText = "";
-  
-    for (
-      let pageNum = 1;
-      pageNum <= pdf.numPages;
-      pageNum++
-    ) {
-  
-      const page =
-        await pdf.getPage(pageNum);
-  
-      const content =
-        await page.getTextContent();
-  
-      const pageText =
-        content.items
-          .map(
-            (item: any) =>
-              item.str
-          )
-          .join(" ");
-  
-      fullText +=
-        pageText + "\n";
-  
+
+    try {
+
+      const arrayBuffer =
+        await file.arrayBuffer();
+    
+      const pdfjsLib =
+        await import(
+          "pdfjs-dist/legacy/build/pdf"
+        );
+    
+      const worker = (
+        await import(
+          "pdfjs-dist/build/pdf.worker.min.mjs?url"
+        )
+      ).default;
+    
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        worker;
+    
+      const pdf =
+        await pdfjsLib.getDocument({
+          data: arrayBuffer,
+        }).promise;
+
+      for (
+        let pageNum = 1;
+        pageNum <= pdf.numPages;
+        pageNum++
+      ) {
+        const page =
+          await pdf.getPage(pageNum);
+
+        const content =
+          await page.getTextContent();
+
+        const pageText =
+          content.items
+            .map(
+              (item: any) =>
+                item.str
+            )
+            .join(" ");
+
+        fullText +=
+          pageText + "\n";
+      }
+    
+    } catch (err) {
+    
+      console.error(err);
+    
+      toast.error(
+        "Unable to read PDF"
+      );
+    
+      return;
+    
     }
     console.log(
       "PDF TEXT:",
@@ -612,7 +632,7 @@ toast.success(
       <div className="flex-1 p-6 pt-24">
   
         <h1 className="text-5xl font-bold mb-8">
-          Invoice Upload 📄
+          Invoice Upload 
         </h1>
   
         <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800">
@@ -639,7 +659,7 @@ toast.success(
                 transition-all
               "
             >
-              📄 Upload Invoice
+               Upload Invoice
             </label>
   
             <input
@@ -849,7 +869,7 @@ toast.success(
   {
     uploading
       ? "Refilling..."
-      : "🔄 Refill Inventory"
+      : " Refill Inventory"
   }
 </button>
   

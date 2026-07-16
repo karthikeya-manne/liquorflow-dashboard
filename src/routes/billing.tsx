@@ -26,13 +26,13 @@ import toast from "react-hot-toast";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/billing")({
   component: BillingPage,
 });
 
 function BillingPage() {
-
-  const [shopId, setShopId] = useState<string | null>(null);
 
   const [products, setProducts] =
     useState<any[]>([]);
@@ -59,34 +59,14 @@ const [customerPaid, setCustomerPaid] =
     >;
   };
 
-  useEffect(() => {
-
-    const unsubscribe =
-      getFirebaseAuth()
-        .onAuthStateChanged(
-          (user) => {
-  
-            if (user) {
-  
-              setShopId(
-                user.uid
-              );
-  
-            }
-  
-          }
-        );
-  
-    return () =>
-      unsubscribe();
-  
-  }, []);
+  const shopId = getCurrentShopId();
 
   useEffect(() => {
 
     async function loadData() {
   
       await fetchProducts();
+      
   
       setLoading(false);
   
@@ -281,6 +261,7 @@ const [customerPaid, setCustomerPaid] =
       );
   
       fetchProducts();
+      
   
       toast.success(
         "Sale completed successfully 🚀"
@@ -500,7 +481,7 @@ const [customerPaid, setCustomerPaid] =
         {/* Header */}
   
         <h1 className="text-4xl font-bold mb-6">
-          Billing / POS 💵
+          Billing / POS 
         </h1>
   
         {/* Search + Category */}

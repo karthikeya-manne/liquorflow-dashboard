@@ -6,6 +6,8 @@ import { signOut } from "firebase/auth";
 
 import { getFirebaseAuth } from "../lib/firebase";
 
+import ShopSwitcher from "./ShopSwitcher";
+
 export default function Sidebar() {
 
   const [isOpen, setIsOpen] =
@@ -105,7 +107,13 @@ export default function Sidebar() {
 
 </div>
 
-<div className="mt-20 flex flex-col gap-4 pb-24">
+<div className="mt-20">
+
+  <ShopSwitcher />
+
+</div>
+
+<div className="mt-6 flex flex-col gap-4 pb-24">
 
           <Link
             to="/dashboard"
@@ -122,6 +130,14 @@ export default function Sidebar() {
           >
             📦 Inventory
           </Link>
+
+          <Link
+  to="/morning-stocks"
+  onClick={closeSidebar}
+  className="bg-zinc-900 hover:bg-zinc-800 transition-all p-4 rounded-xl"
+>
+  🌅 Morning Stock Entry
+</Link>
 
           <Link
             to="/billing"

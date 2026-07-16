@@ -14,6 +14,8 @@ import Sidebar from "../components/Sidebar";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/sales")({
 component: SalesPage,
 });
@@ -26,34 +28,8 @@ const [loading,
   setLoading] =
   useState(true);
 
-const [shopId,
-  setShopId] =
-  useState<string | null>(
-    null
-  );
-
-  useEffect(() => {
-
-    const unsubscribe =
-      getFirebaseAuth()
-        .onAuthStateChanged(
-          (user) => {
+  const shopId = getCurrentShopId();
   
-            if (user) {
-  
-              setShopId(
-                user.uid
-              );
-  
-            }
-  
-          }
-        );
-  
-    return () =>
-      unsubscribe();
-  
-  }, []);
 
   useEffect(() => {
 
@@ -130,7 +106,7 @@ return ( <div className="min-h-screen bg-black text-white flex">
   <div className="flex-1 p-6 pt-24">
 
     <h1 className="text-4xl font-bold mb-6">
-      Sales Analytics 📈
+      Sales Analytics 
     </h1>
 
     <div className="grid gap-6 md:grid-cols-3 mb-8">

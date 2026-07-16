@@ -20,6 +20,8 @@ import Sidebar from "../components/Sidebar";
 import PageLoader
 from "../components/PageLoader";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
@@ -35,47 +37,20 @@ function DashboardPage() {
     const [openingStock, setOpeningStock] =
   useState<number>(0);
 
-  const [shopId, setShopId] =
-  useState<string | null>(null);
 
   const [loading,
     setLoading] =
     useState(true);
 
+const shopId = getCurrentShopId();
+
     useEffect(() => {
-      const unsubscribe =
-        getFirebaseAuth().onAuthStateChanged((user) => {
-          console.log("AUTH USER:", user);
-        
-          if (user) {
-            console.log("UID:", user.uid);
-            setShopId(user.uid);
-          } else {
-            console.log("NO USER FOUND");
-            setLoading(false);
-          }
-        });
-    
-      return unsubscribe;
+
+  fetchData();
+
     }, []);
 
-  useEffect(() => {
 
-    async function loadData() {
-  
-      await fetchData();
-  
-      
-  
-    }
-  
-    if (shopId) {
-  
-      loadData();
-  
-    }
-  
-  }, [shopId]);
 
     const [purchaseQty, setPurchaseQty] =
   useState<Record<string, number>>({});
@@ -713,7 +688,7 @@ await savePdf(
       <div className="flex justify-between items-center mb-8">
 
 <h1 className="text-5xl font-bold">
-  Dashboard 📊
+  Dashboard 
 </h1>
 
 <button
@@ -728,7 +703,7 @@ await savePdf(
     text-white
   "
 >
-  📄 Daily Report
+   Daily Report
 </button>
 
 </div>
@@ -800,7 +775,7 @@ await savePdf(
 <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
 
   <h2 className="text-2xl font-bold mb-4">
-    Today's Summary 📊
+    Total Sales Summary 📊
   </h2>
 
   <div className="space-y-6">
@@ -952,7 +927,7 @@ await savePdf(
         <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 mt-8">
 
           <h2 className="text-3xl font-bold mb-6">
-            Daily Sales Report 📊
+            Daily Sales Report 
           </h2>
 
           <div className="grid md:grid-cols-3 gap-4">

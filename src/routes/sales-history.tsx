@@ -9,16 +9,13 @@ from "../components/PageLoader";
 
 import { savePdf } from "../lib/pdf-download";
 
+import { getCurrentShopId } from "@/lib/currentShop";
+
 export const Route = createFileRoute("/sales-history")({
   component: SalesHistoryPage,
 });
 
 function SalesHistoryPage() {
-  const [shopId,
-    setShopId] =
-    useState<string | null>(
-      null
-    );
 
   const [sales, setSales] =
     useState<any[]>([]);
@@ -36,28 +33,7 @@ function SalesHistoryPage() {
       setLoading] =
       useState(true);
 
-    useEffect(() => {
-
-      const unsubscribe =
-        getFirebaseAuth()
-          .onAuthStateChanged(
-            (user) => {
-    
-              if (user) {
-    
-                setShopId(
-                  user.uid
-                );
-    
-              }
-    
-            }
-          );
-    
-      return () =>
-        unsubscribe();
-    
-    }, []);
+      const shopId = getCurrentShopId();
 
     useEffect(() => {
 
@@ -342,7 +318,7 @@ const cardSales =
       <div className="flex justify-between items-center mb-8">
 
   <h1 className="text-5xl font-bold">
-    Sales History 📜
+    Sales History 
   </h1>
 
   <button
@@ -357,7 +333,7 @@ const cardSales =
       transition-all
     "
   >
-    📄 Download PDF
+     Download PDF
   </button>
 
 </div>
@@ -526,9 +502,31 @@ const cardSales =
 
                 <div>
 
+                <div className="flex items-center gap-2">
+
 <h2 className="text-2xl font-bold">
   {sale.productName}
 </h2>
+
+{sale.paymentMethod === "Morning Stock" && (
+
+  <span
+    className="
+      bg-blue-500/20
+      text-blue-400
+      px-3
+      py-1
+      rounded-full
+      text-xs
+      font-semibold
+    "
+  >
+    Morning Entry
+  </span>
+
+)}
+
+</div>
 
 <p className="text-zinc-400 mt-1">
   Qty: {sale.quantity}
@@ -555,11 +553,21 @@ const cardSales =
   )}
 </p>
 
-                    <p className="text-zinc-400 text-sm">
-                      {sale.soldAt
-                        ?.toDate?.()
-                        .toLocaleString()}
-                    </p>
+{sale.paymentMethod === "Morning Stock" ? (
+
+<p className="text-blue-400 text-sm font-semibold">
+   Morning Stock Entry
+</p>
+
+) : (
+
+<p className="text-zinc-400 text-sm">
+  {sale.soldAt
+    ?.toDate?.()
+    .toLocaleString()}
+</p>
+
+)}
 
                   </div>
 

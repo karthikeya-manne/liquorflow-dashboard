@@ -1,12 +1,14 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.liquorflow.app',
-  appName: 'LiquorFlow',
+  appId: "com.liquorflow.app",
+  appName: "LiquorFlow",
+
   server: {
-    url: 'https://tanstack-start-app.liquorflow-app.workers.dev',
-    cleartext: true
-  }
+    url: "https://tanstack-start-app.liquorflow-app.workers.dev",
+    cleartext: true,
+    androidScheme: "https",
+  },
 };
 
 export default config;
