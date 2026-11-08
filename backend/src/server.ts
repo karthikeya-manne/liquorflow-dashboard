@@ -5,10 +5,19 @@ import { getEnv } from "./config/env.js";
 import { connectMongo } from "./config/mongo.js";
 
 async function main() {
-  initFirebaseAdmin();
-  await connectMongo();
+  console.log("LiquorFlow API starting…");
 
   const env = getEnv();
+  console.log(
+    `Environment OK (firebase=${env.FIREBASE_PROJECT_ID}, db=${env.MONGODB_DB_NAME}, port=${env.PORT})`,
+  );
+
+  initFirebaseAdmin();
+  console.log("Firebase Admin initialized");
+
+  await connectMongo();
+  console.log("MongoDB connected");
+
   const app = createApp();
 
   app.listen(env.PORT, env.HOST, () => {
@@ -28,10 +37,22 @@ function safeStartupError(err: unknown): string {
     return `${redacted}
 
 MongoDB Atlas connection failed. Check:
-  1. Atlas → Network Access: add your current IP (or 0.0.0.0/0 for local dev only).
+  1. Atlas → Network Access → Allow Access from Anywhere (0.0.0.0/0) so Render can connect.
   2. Atlas → Database: cluster is running (not paused).
-  3. Database Access: user password matches MONGODB_URI in backend/.env (reset password and update .env if unsure).
-  4. Test the same URI in MongoDB Compass from this PC.`;
+  3. Render → Environment: MONGODB_URI matches Atlas (copy a fresh connection string if needed).
+  4. Database Access: user password in the URI is correct.`;
+  }
+
+  if (/Invalid environment configuration/i.test(message)) {
+    return `${message}
+
+Render → Environment: set MONGODB_URI, FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY, and CLIENT_ORIGIN.`;
+  }
+
+  if (/private key|PEM|credential/i.test(message)) {
+    return `${redacted}
+
+Firebase private key issue. On Render, paste the full multiline secret (BEGIN…END) or use \\n between lines in FIREBASE_PRIVATE_KEY.`;
   }
 
   return redacted;
