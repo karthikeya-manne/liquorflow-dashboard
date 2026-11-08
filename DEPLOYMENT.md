@@ -66,7 +66,8 @@ Auth uses the Firebase **client** SDK only. All shop data calls `VITE_API_BASE_U
 1. Commit and push the repo (including `backend/`) to GitHub.
 2. [Render](https://render.com/) → **New** → **Web Service** → connect `liquorflow-dashboard`.
 3. **Root Directory:** `backend`
-4. **Build:** `npm ci && npm run build` · **Start:** `npm start`
+4. **Build:** `npm ci --include=dev && npm run build` · **Start:** `npm start`  
+   (`--include=dev` is required on Render so TypeScript is available during build.)
 5. **Health Check Path:** `/health`
 6. **Environment** (from `backend/.env`, never commit the file):
 
