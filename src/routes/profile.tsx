@@ -3,19 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 
 import {
-  updateDoc,
-  doc,
-  getDoc,
-} from "firebase/firestore";
-
-import {
   updatePassword,
   verifyBeforeUpdateEmail,
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
 
-import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
+import { getFirebaseAuth } from "../lib/firebase";
+import { getShop, updateShop } from "@/lib/api/liquorflow";
 
 
 import Sidebar from "../components/Sidebar";
@@ -114,35 +109,15 @@ async function fetchShopData() {
 
     const user = getFirebaseAuth().currentUser;
 
-    const docRef = doc(
-      getFirestoreDb(),
-      "shops",
-      shopId
-    );
+    const data = await getShop(shopId);
 
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-
-      const data = docSnap.data();
-
-      // Sync Firestore email with Firebase Auth email
-      if (
-        user &&
-        user.email &&
-        data.ownerEmail !== user.email
-      ) {
-
-        await updateDoc(docRef, {
-          ownerEmail: user.email,
-        });
-
-        data.ownerEmail = user.email;
-      }
-
-      setShopData(data);
-
+    if (user?.email && data.ownerEmail !== user.email) {
+      const synced = await updateShop(shopId, { ownerEmail: user.email });
+      setShopData(synced);
+      return;
     }
+
+    setShopData(data);
 
   } catch (error) {
 
@@ -197,17 +172,10 @@ if (
   email === user.email
 ) {
 
-  await updateDoc(
-    doc(
-      getFirestoreDb(),
-      "shops",
-      shopId
-    ),
-    {
-      shopName,
-      ownerEmail: email,
-    }
-  );
+  await updateShop(shopId, {
+    shopName,
+    ownerEmail: email,
+  });
 
 }
 

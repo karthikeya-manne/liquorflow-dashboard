@@ -2,12 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { useState, useEffect } from "react";
 
-import {
-collection,
-getDocs,
-} from "firebase/firestore";
-
-import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
+import { listSales } from "@/lib/api/liquorflow";
 
 import Sidebar from "../components/Sidebar";
 
@@ -54,26 +49,7 @@ if (!shopId) return;
 
 try {
 
-  const querySnapshot = await getDocs(
-    collection(
-      getFirestoreDb(),
-      "shops",
-      shopId,
-      "sales"
-    )
-  );
-
-  const salesData: any[] = [];
-
-  querySnapshot.forEach((docItem) => {
-
-    salesData.push({
-      id: docItem.id,
-      ...docItem.data(),
-    });
-
-  });
-
+  const salesData = await listSales(shopId);
   setSales(salesData);
 
 } catch (error) {

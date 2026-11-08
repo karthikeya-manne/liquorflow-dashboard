@@ -1,60 +1,63 @@
-import { useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { isFirebaseConfigured } from "@/lib/firebase";
-import { products as mockProducts } from "@/lib/mock-data";
-import { seedProductsIfEmpty, subscribeToProducts } from "@/lib/firestore/products";
+import { isApiEnabled } from "@/lib/api/client";
+import { listProducts } from "@/lib/api/liquorflow";
+import { shopQueryKeys } from "@/lib/api/query-keys";
+import { products as mockProducts, type Product } from "@/lib/mock-data";
+import { getCurrentShopId } from "@/lib/currentShop";
+
+function mapApiProductToMockShape(
+  item: { id: string; name: string; category: string; quantity: number; price: number },
+): Product {
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category as Product["category"],
+    sku: item.id,
+    stock: item.quantity,
+    threshold: 5,
+    price: item.price,
+    cost: 0,
+    supplier: "",
+  };
+}
+
+function resolveShopId(): string | null {
+  try {
+    return getCurrentShopId();
+  } catch {
+    return null;
+  }
+}
 
 export function useProducts() {
-  const { user, isAuthenticated } = useAuth();
-  const queryClient = useQueryClient();
-  const useFirestore = isFirebaseConfigured() && isAuthenticated && Boolean(user);
-  const userId = user?.uid;
-  const queryKey = ["products", useFirestore ? userId : "mock"];
+  const { isAuthenticated } = useAuth();
+  const shopId = resolveShopId();
+  const useApi = isApiEnabled() && isAuthenticated && Boolean(shopId);
+
+  const apiQuery = useQuery({
+    queryKey: shopQueryKeys.products(shopId ?? "none"),
+    queryFn: async () => {
+      if (!shopId) return [];
+      const items = await listProducts(shopId);
+      return items.map(mapApiProductToMockShape);
+    },
+    enabled: useApi,
+  });
 
   const mockQuery = useQuery({
-    queryKey,
+    queryKey: ["products", "mock"],
     queryFn: async () => mockProducts,
-    enabled: !useFirestore,
+    enabled: !useApi,
     staleTime: Infinity,
   });
 
-  useEffect(() => {
-    if (!useFirestore || !user) return;
-
-    let unsubscribe: (() => void) | undefined;
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        await seedProductsIfEmpty(user.uid);
-        if (cancelled) return;
-
-        unsubscribe = subscribeToProducts(
-          user.uid,
-          (products) => {
-            queryClient.setQueryData(queryKey, products);
-          },
-          (error) => {
-            console.error("Firestore products subscription failed:", error);
-          },
-        );
-      } catch (error) {
-        console.error("Failed to load products from Firestore:", error);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      unsubscribe?.();
-    };
-  }, [useFirestore, userId, queryClient, queryKey]);
-
-  const firestoreProducts = useFirestore ? queryClient.getQueryData<typeof mockProducts>(queryKey) : undefined;
+  const products = useApi ? (apiQuery.data ?? []) : (mockQuery.data ?? mockProducts);
 
   return {
-    products: useFirestore ? (firestoreProducts ?? []) : (mockQuery.data ?? mockProducts),
-    isLoading: useFirestore ? firestoreProducts === undefined : mockQuery.isLoading,
-    isFromFirestore: useFirestore,
+    products,
+    isLoading: useApi ? apiQuery.isLoading : mockQuery.isLoading,
+    isFromFirestore: false,
+    isFromApi: useApi,
   };
 }

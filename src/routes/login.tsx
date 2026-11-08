@@ -5,46 +5,46 @@ import { useState } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 
-import {
-  addDoc,
-  collection,
-} from "firebase/firestore";
+import { getFirebaseAuth } from "../lib/firebase";
+import { firebaseAuthErrorMessage } from "@/lib/firebase-auth-errors";
+import { createShop as createShopApi } from "@/lib/api/liquorflow";
+import { syncProducts } from "../lib/syncProducts";
 
-import {
-  getFirebaseAuth,
-  getFirestoreDb,
-} from "../lib/firebase";
-
-  import { syncProducts } from "../lib/syncProducts";
+import { useAuth } from "@/lib/auth-context";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import PageLoader from "../components/PageLoader";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
   component: LoginPage,
 });
 
 function LoginPage() {
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
 
-  const [isSignup, setIsSignup] =
-    useState(false);
+  const [isSignup, setIsSignup] = useState(false);
+  const [shopName, setShopName] = useState("");
+  const [shopCategory, setShopCategory] = useState("Wines");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [resetMessage, setResetMessage] = useState("");
 
-  const [shopName, setShopName] =
-    useState("");
+  useEffect(() => {
+    if (isLoading || !user) return;
+    const shopId = localStorage.getItem("selectedShopId");
+    void navigate({ to: shopId ? "/dashboard" : "/select-shop", replace: true });
+  }, [user, isLoading, navigate]);
 
-    const [shopCategory, setShopCategory] =
-  useState("Wines");
-
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  if (isLoading || user) {
+    return <PageLoader />;
+  }
 
   async function handleAuth() {
 
@@ -67,28 +67,18 @@ function LoginPage() {
 
       if (isSignup) {
 
-        const userCredential =
-          await createUserWithEmailAndPassword(
+        await createUserWithEmailAndPassword(
             getFirebaseAuth(),
             email,
             password
           );
 
-        const uid =
-          userCredential.user.uid;
+          const shop = await createShopApi({
+            shopName,
+            shopCategory,
+          });
 
-          const shopRef = await addDoc(
-            collection(getFirestoreDb(), "shops"),
-          {
-              ownerUid: uid,
-              shopName,
-              shopCategory,
-            ownerEmail: email,
-            createdAt: new Date(),
-          }
-        );
-
-          const shopId = shopRef.id;
+          const shopId = shop.id;
 
           await syncProducts(shopId);
 
@@ -111,16 +101,30 @@ function LoginPage() {
       window.location.href =
 "/select-shop";
 
-    } catch (err: any) {
-
+    } catch (err: unknown) {
       console.error(err);
-
-      setError(err.message);
-
+      setError(firebaseAuthErrorMessage(err));
     } finally {
 
       setLoading(false);
 
+    }
+  }
+
+  async function handlePasswordReset() {
+    setResetMessage("");
+    setError("");
+
+    if (!email.trim()) {
+      setError("Enter your email to reset your password");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(getFirebaseAuth(), email.trim());
+      setResetMessage("Password reset email sent. Check your inbox.");
+    } catch (err: unknown) {
+      setError(firebaseAuthErrorMessage(err));
     }
   }
 
@@ -198,6 +202,12 @@ Inventory & Billing Solution
 
           )}
 
+          {resetMessage && (
+            <div className="bg-green-500/20 border border-green-500 text-green-400 p-3 rounded-lg text-sm">
+              {resetMessage}
+            </div>
+          )}
+
           <button
             onClick={handleAuth}
             disabled={loading}
@@ -226,6 +236,16 @@ Inventory & Billing Solution
             : "Create Account"}
 
         </button>
+
+        {!isSignup && (
+          <button
+            type="button"
+            onClick={handlePasswordReset}
+            className="mt-4 w-full text-zinc-400 hover:text-orange-300 text-sm transition-all"
+          >
+            Forgot password?
+          </button>
+        )}
 
       </div>
 

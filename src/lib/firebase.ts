@@ -1,11 +1,8 @@
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import {
   getAuth,
-  setPersistence,
-  browserLocalPersistence,
   type Auth,
 } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string | undefined,
@@ -29,7 +26,6 @@ export function isFirebaseConfigured(): boolean {
 
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
-let db: Firestore | undefined;
 
 export function getFirebaseApp(): FirebaseApp {
   if (typeof window === "undefined") {
@@ -51,11 +47,4 @@ export function getFirebaseAuth(): Auth {
     auth = getAuth(getFirebaseApp());
   }
   return auth;
-}
-
-export function getFirestoreDb(): Firestore {
-  if (!db) {
-    db = getFirestore(getFirebaseApp());
-  }
-  return db;
 }

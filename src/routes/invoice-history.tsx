@@ -1,18 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
-import {
-    collection,
-    getDocs,
-    updateDoc,
-    deleteDoc,
-    doc,
-  } from "firebase/firestore";
-  
-  import {
-    getFirestoreDb,
-    getFirebaseAuth,
-  } from "../lib/firebase";
+import { deleteInvoice as deleteInvoiceApi, listInvoices } from "@/lib/api/liquorflow";
 
   import toast from "react-hot-toast";
 
@@ -83,60 +72,17 @@ function InvoiceHistoryPage() {
           }, [shopId]);
 
           async function loadInvoices() {
+            if (!shopId) return;
 
-            const shopId =
-              getFirebaseAuth()
-                .currentUser?.uid;
-          
-            if (!shopId)
-              return;
-          
-            const snapshot =
-              await getDocs(
-          
-                collection(
-                  getFirestoreDb(),
-                  "shops",
-                  shopId,
-                  "invoiceHistory"
-                )
-          
-              );
-          
-            const data: any[] = [];
-          
-            snapshot.forEach(
-              (docItem) => {
-          
-                data.push({
-          
-                  id:
-                    docItem.id,
-          
-                  ...docItem.data(),
-          
-                });
-          
-              }
-            );
-          
+            const data = await listInvoices(shopId);
+
             data.sort(
-                (a, b) =>
-                  new Date(
-                    b.uploadedAt
-                  ).getTime() -
-                  new Date(
-                    a.uploadedAt
-                  ).getTime()
-              );
-              
-              setInvoices(data);
+              (a, b) =>
+                new Date(b.uploadedAt).getTime() -
+                new Date(a.uploadedAt).getTime(),
+            );
 
-            console.log(
-                "INVOICES:",
-                data
-              );
-          
+            setInvoices(data);
           }
 
           async function deleteInvoice(
@@ -144,138 +90,23 @@ function InvoiceHistoryPage() {
           ) {
 
             setDeleting(true);
-          
-            const shopId =
-              getFirebaseAuth()
-                .currentUser?.uid;
-          
-                if (!shopId) {
 
-                    setDeleting(false);
-                  
-                    return;
-                  
-                  }
-          
-            const productsSnapshot =
-              await getDocs(
-                collection(
-                  getFirestoreDb(),
-                  "shops",
-                  shopId,
-                  "products"
-                )
-              );
-          
-            const products: any[] = [];
-          
-            productsSnapshot.forEach(
-              (docItem) => {
-          
-                products.push({
-                  id: docItem.id,
-                  ...docItem.data(),
-                });
-          
-              }
-            );
-          
-            for (const item of invoice.items) {
-          
-              const product =
-                products.find(
-                  (p) =>
-                    p.name ===
-                    item.inventoryName
-                );
-          
-              if (!product)
-                continue;
-          
-              const bottlesToRemove =
-              (
-                Number(item.qty) *
-                Number(item.packQty)
-              ) +
-              Number(item.bottles || 0);
-
-await updateDoc(
-  doc(
-    getFirestoreDb(),
-    "shops",
-    shopId,
-    "products",
-    product.id
-  ),
-  {
-    quantity:
-      Math.max(
-        Number(
-          product.quantity
-        ) -
-          bottlesToRemove,
-        0
-      ),
-  }
-);
-          
+            if (!shopId) {
+              setDeleting(false);
+              return;
             }
-          
-            await deleteDoc(
-              doc(
-                getFirestoreDb(),
-                "shops",
-                shopId,
-                "invoiceHistory",
-                invoice.id
-              )
-            );
-          
+
+            const { totalStock } = await deleteInvoiceApi(shopId, invoice.id);
             await loadInvoices();
 
-            const today =
-  new Date()
-    .toISOString()
-    .split("T")[0];
+            const today = new Date().toISOString().split("T")[0];
 
-const refreshed =
-  await getDocs(
-    collection(
-      getFirestoreDb(),
-      "shops",
-      shopId,
-      "products"
-    )
-  );
+            localStorage.setItem(`openingStock-${today}`, totalStock.toString());
+            localStorage.setItem(`closingStock-${today}`, totalStock.toString());
 
-let totalStock = 0;
-
-refreshed.forEach(
-  (docItem) => {
-
-    totalStock += Number(
-      docItem.data().quantity || 0
-    );
-
-  }
-);
-
-localStorage.setItem(
-  `openingStock-${today}`,
-  totalStock.toString()
-);
-
-localStorage.setItem(
-  `closingStock-${today}`,
-  totalStock.toString()
-);
-          
-toast.success(
-              "Invoice deleted successfully"
-            );
+            toast.success("Invoice deleted successfully");
 
             setDeleting(false);
-          
           }
 
           if (loading) {

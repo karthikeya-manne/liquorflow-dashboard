@@ -18,6 +18,13 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!backend/.env.example
+backend/.env
+backend/dist
+
+# Firebase service account exports (server-only; use env vars in production)
+*firebase-adminsdk*.json
+*service-account*.json
 
 # Wrangler / Cloudflare
 .wrangler/

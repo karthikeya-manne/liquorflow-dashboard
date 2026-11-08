@@ -1,15 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-
-import {
-  getFirebaseAuth,
-  getFirestoreDb,
-} from "../lib/firebase";
+import { getFirebaseAuth } from "../lib/firebase";
+import { listShops } from "@/lib/api/liquorflow";
 
 export default function ShopSwitcher() {
 
@@ -29,17 +20,7 @@ export default function ShopSwitcher() {
 
     if (!user) return;
 
-    const snapshot = await getDocs(
-      query(
-        collection(getFirestoreDb(), "shops"),
-        where("ownerUid", "==", user.uid)
-      )
-    );
-
-    const list = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const list = await listShops();
 
     setShops(list);
 

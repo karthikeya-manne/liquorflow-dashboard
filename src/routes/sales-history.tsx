@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
+import { listSales } from "@/lib/api/liquorflow";
+import { getSaleDate } from "@/lib/sale-utils";
 import Sidebar from "../components/Sidebar";
 
 import PageLoader
@@ -56,30 +56,13 @@ function SalesHistoryPage() {
   async function fetchSales() {
     if (!shopId) return;
 
-    const snapshot =
-      await getDocs(
-        collection(
-          getFirestoreDb(),
-          "shops",
-          shopId,
-          "sales"
-        )
-      );
+    const salesData = await listSales(shopId);
 
-    const salesData: any[] = [];
-
-    snapshot.forEach((doc) => {
-      salesData.push({
-        id: doc.id,
-        ...doc.data(),
-      });
+    salesData.sort((a, b) => {
+      const aDate = getSaleDate(a)?.getTime() ?? 0;
+      const bDate = getSaleDate(b)?.getTime() ?? 0;
+      return bDate - aDate;
     });
-
-    salesData.sort(
-      (a, b) =>
-        b.soldAt?.seconds -
-        a.soldAt?.seconds
-    );
 
     setSales(salesData);
   }
@@ -102,11 +85,9 @@ function SalesHistoryPage() {
 
       let matchesDate = true;
 
-      const saleDate =
-        sale.soldAt?.toDate?.();
+      const saleDate = getSaleDate(sale);
 
-      if (!saleDate)
-        return false;
+      if (!saleDate) return false;
 
       if (selectedDate) {
 
@@ -261,9 +242,7 @@ const cardSales =
       sale.paymentMethod ||
       "Cash",
 
-      sale.soldAt
-        ?.toDate?.()
-        .toLocaleString(),
+      getSaleDate(sale)?.toLocaleString() ?? "",
 
     ]
   ),
@@ -562,9 +541,7 @@ const cardSales =
 ) : (
 
 <p className="text-zinc-400 text-sm">
-  {sale.soldAt
-    ?.toDate?.()
-    .toLocaleString()}
+  {getSaleDate(sale)?.toLocaleString()}
 </p>
 
 )}

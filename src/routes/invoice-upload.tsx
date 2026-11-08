@@ -3,19 +3,12 @@ import Sidebar from "../components/Sidebar";
 import { useState } from "react";
 
   import {
-    collection,
-    getDocs,
-    updateDoc,
-    doc,
-    addDoc,
-    query,
-    where,
-  } from "firebase/firestore";
-  
-  import {
-    getFirestoreDb,
-    getFirebaseAuth,
-  } from "../lib/firebase";
+    createProduct,
+    importInvoice,
+    listInvoices,
+    listProducts,
+  } from "@/lib/api/liquorflow";
+  import { getCurrentShopId } from "@/lib/currentShop";
 
   import { useRef } from "react";
 
@@ -180,32 +173,8 @@ if (invoiceMatch) {
 
     const regex =
 /(\d{4})\s+([A-Z0-9`'.&\-\s]+?)\s+(Beer|IML)\s+([A-Z])\s+(\d+)\s*\/\s*(\d+)\s*ml\s+(\d+)\s+(\d+)/g;
-const shopId =
-  getFirebaseAuth()
-    .currentUser?.uid;
-
-const inventorySnapshot =
-  await getDocs(
-    collection(
-      getFirestoreDb(),
-      "shops",
-      shopId!,
-      "products"
-    )
-  );
-
-const inventoryProducts: any[] = [];
-
-inventorySnapshot.forEach(
-  (docItem) => {
-
-    inventoryProducts.push({
-      id: docItem.id,
-      ...docItem.data(),
-    });
-
-  }
-);
+const shopId = getCurrentShopId();
+const inventoryProducts = await listProducts(shopId);
 
     
     let match;
@@ -361,21 +330,14 @@ if (!existsInInventory) {
 
     setUploading(true);
 
-    const shopId =
-      getFirebaseAuth()
-        .currentUser?.uid;
-  
-        if (!shopId) {
-
-          toast.error(
-            "Shop not found"
-          );
-        
-          setUploading(false);
-        
-          return;
-        
-        }
+    let shopId: string;
+    try {
+      shopId = getCurrentShopId();
+    } catch {
+      toast.error("Shop not found");
+      setUploading(false);
+      return;
+    }
 
     if (!invoiceNumber) {
 
@@ -387,159 +349,19 @@ if (!existsInInventory) {
     
     }
 
-    const existingInvoice =
-  await getDocs(
-
-    query(
-
-      collection(
-        getFirestoreDb(),
-        "shops",
-        shopId,
-        "invoiceHistory"
-      ),
-
-      where(
-        "invoiceNumber",
-        "==",
-        invoiceNumber
-      )
-
-    )
-
-  );
-
-if (
-  !existingInvoice.empty
-) {
-
-  toast.error(
-    "Invoice already processed"
-  );
-  setUploading(false);
-  return;
-
-}
-  
-    const snapshot =
-      await getDocs(
-        collection(
-          getFirestoreDb(),
-          "shops",
-          shopId,
-          "products"
-        )
-      );
-  
-    const products: any[] = [];
-  
-    snapshot.forEach(
-      (docItem) => {
-  
-        products.push({
-          id: docItem.id,
-          ...docItem.data(),
-        });
-  
-      }
-    );
-  
-    for (const item of invoiceItems) {
-  
-      const product =
-        products.find(
-          (p) =>
-            p.name ===
-            item.inventoryName
-        );
-  
-      if (!product)
-        continue;
-  
-      const bottlesToAdd =
-(
-  Number(item.qty) *
-  Number(item.packQty)
-) +
-Number(item.bottles || 0);
-
-await updateDoc(
-  doc(
-    getFirestoreDb(),
-    "shops",
-    shopId,
-    "products",
-    product.id
-  ),
-  {
-    quantity:
-      Number(product.quantity) +
-      bottlesToAdd,
-  }
-);
-  
+    const existingInvoices = await listInvoices(shopId);
+    if (existingInvoices.some((inv) => inv.invoiceNumber === invoiceNumber)) {
+      toast.error("Invoice already processed");
+      setUploading(false);
+      return;
     }
 
-    await addDoc(
+    const { totalStock } = await importInvoice(shopId, {
+      invoiceNumber,
+      items: invoiceItems,
+    });
 
-      collection(
-        getFirestoreDb(),
-        "shops",
-        shopId,
-        "invoiceHistory"
-      ),
-    
-      {
-    
-        invoiceNumber,
-    
-        uploadedAt:
-          new Date()
-            .toISOString(),
-    
-        totalProducts:
-          invoiceItems.length,
-    
-        totalCases:
-          invoiceItems.reduce(
-            (sum, item) =>
-              sum + item.qty,
-            0
-          ),
-    
-        items:
-          invoiceItems,
-    
-      }
-    
-    );
-
-    const today =
-    new Date()
-      .toISOString()
-      .split("T")[0];
-
-    const refreshedSnapshot =
-  await getDocs(
-    collection(
-      getFirestoreDb(),
-      "shops",
-      shopId,
-      "products"
-    )
-  );
-
-let totalStock = 0;
-
-refreshedSnapshot.forEach(
-  (docItem) => {
-
-    totalStock += Number(
-      docItem.data().quantity || 0
-    );
-
-  }
-);
+    const today = new Date().toISOString().split("T")[0];
 
 localStorage.setItem(
   `openingStock-${today}`,
@@ -571,38 +393,14 @@ toast.success(
 
   async function saveProduct() {
 
-    const shopId =
-      getFirebaseAuth()
-        .currentUser?.uid;
-  
-    if (!shopId) return;
-  
-    await addDoc(
-  
-      collection(
-        getFirestoreDb(),
-        "shops",
-        shopId,
-        "products"
-      ),
-  
-      {
-        name:
-          newProductName,
-  
-        category:
-          newProductCategory,
-  
-        price:
-          Number(
-            newProductPrice
-          ),
-  
-        quantity: 0,
-  
-      }
-  
-    );
+    const shopId = getCurrentShopId();
+
+    await createProduct(shopId, {
+      name: newProductName,
+      category: newProductCategory,
+      price: Number(newProductPrice),
+      quantity: 0,
+    });
   
     toast.success(
       "Product Added Successfully"

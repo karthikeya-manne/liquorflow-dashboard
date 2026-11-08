@@ -5,16 +5,9 @@ import {
   useState,
 } from "react";
 
-import {
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  addDoc,
-  Timestamp,
-} from "firebase/firestore";
-
-import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
+import { useQueryClient } from "@tanstack/react-query";
+import { createSale, listProducts } from "@/lib/api/liquorflow";
+import { invalidateShopQueries } from "@/lib/api/invalidate-shop";
 
 import Sidebar from "../components/Sidebar";
 import {
@@ -33,6 +26,7 @@ export const Route = createFileRoute("/billing")({
 });
 
 function BillingPage() {
+  const queryClient = useQueryClient();
 
   const [products, setProducts] =
     useState<any[]>([]);
@@ -86,27 +80,7 @@ const [customerPaid, setCustomerPaid] =
 
     try {
 
-      const querySnapshot =
-        await getDocs(
-          collection(
-            getFirestoreDb(),
-            "shops",
-            shopId,
-            "products"
-          )
-        );
-
-      const productsData: any[] = [];
-
-      querySnapshot.forEach((docItem) => {
-
-        productsData.push({
-          id: docItem.id,
-          ...docItem.data(),
-        });
-
-      });
-
+      const productsData = await listProducts(shopId);
       setProducts(productsData);
 
     } catch (error) {
@@ -181,79 +155,24 @@ const [customerPaid, setCustomerPaid] =
     try {
   
       for (const item of cart) {
-  
-        const latestProduct =
-          products.find(
-            (p) =>
-              p.id === item.id
-          );
-  
-        if (
-          !latestProduct ||
-          latestProduct.quantity <
-            item.quantity
-        ) {
-  
-          toast.error(
-            `${item.name} has insufficient stock`
-          );
-  
+        const latestProduct = products.find((p) => p.id === item.id);
+
+        if (!latestProduct || latestProduct.quantity < item.quantity) {
+          toast.error(`${item.name} has insufficient stock`);
           return;
-  
         }
-  
-        await updateDoc(
-          doc(
-            getFirestoreDb(),
-            "shops",
-            shopId!,
-            "products",
-            item.id
-          ),
-          {
-            quantity:
-              latestProduct.quantity -
-              item.quantity,
-          }
-        );
-  
-        await addDoc(
-          collection(
-            getFirestoreDb(),
-            "shops",
-            shopId!,
-            "sales"
-          ),
-          {
-            productName:
-              item.name,
-  
-            category:
-              item.category ||
-              "Others",
-  
-            quantity:
-              item.quantity,
-  
-            price:
-              Number(
-                item.price
-              ) *
-              item.quantity,
-  
-            profit:
-              Number(
-                item.price
-              ) *
-              item.quantity,
-  
-            soldAt:
-              Timestamp.now(),
-          }
-        );
-  
       }
-  
+
+      await createSale(shopId, {
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
+        includeProfit: true,
+      });
+
+      invalidateShopQueries(queryClient, shopId);
+
       setCart([]);
 
       localStorage.removeItem(

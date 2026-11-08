@@ -3,14 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 
 import {
-  collection,
-  getDocs,
-  deleteDoc,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
-
-import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
+  deleteProduct as deleteProductApi,
+  listProducts,
+  refillProducts,
+} from "@/lib/api/liquorflow";
 
 import Sidebar from "../components/Sidebar";
 
@@ -95,27 +91,7 @@ function InventoryPage() {
 
     try {
 
-      const querySnapshot =
-        await getDocs(
-          collection(
-            getFirestoreDb(),
-            "shops",
-            shopId,
-            "products"
-          )
-        );
-
-      const data: any[] = [];
-
-      querySnapshot.forEach((docItem) => {
-
-        data.push({
-          id: docItem.id,
-          ...docItem.data(),
-        });
-
-      });
-
+      const data = await listProducts(shopId);
       setProducts(data);
 
     } catch (error) {
@@ -129,15 +105,7 @@ function InventoryPage() {
 
     try {
 
-      await deleteDoc(
-        doc(
-          getFirestoreDb(),
-          "shops",
-          shopId!,
-          "products",
-          id
-        )
-      );
+      await deleteProductApi(shopId, id);
 
       fetchProducts();
       
@@ -196,38 +164,13 @@ function InventoryPage() {
     
       }
     
-      for (const refill of queue) {
-    
-        const product =
-          products.find(
-            (p) =>
-              p.id ===
-              refill.productId
-          );
-    
-        if (!product)
-          continue;
-    
-        await updateDoc(
-          doc(
-            getFirestoreDb(),
-            "shops",
-            shopId,
-            "products",
-            product.id
-          ),
-          {
-            quantity:
-              Number(
-                product.quantity
-              ) +
-              Number(
-                refill.refillQty
-              ),
-          }
-        );
-    
-      }
+      await refillProducts(
+        shopId,
+        queue.map((refill: { productId: string; refillQty: number }) => ({
+          productId: refill.productId,
+          refillQty: refill.refillQty,
+        })),
+      );
     
       localStorage.removeItem(
         "refillQueue"

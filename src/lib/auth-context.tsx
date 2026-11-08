@@ -18,16 +18,9 @@ import {
 import { useRouter } from "@tanstack/react-router";
 import {
   getFirebaseAuth,
-  getFirestoreDb,
   isFirebaseConfigured,
 } from "@/lib/firebase";
 import { setRouterAuthState } from "@/lib/auth-types";
-import { syncProducts } from "@/lib/syncProducts";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
 
 type AuthContextValue = {
   user: User | null;
@@ -78,49 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (nextUser) => {
-
-      try {
-    
-        if (nextUser) {
-    
-          const db = getFirestoreDb();
-    
-          const shopRef = doc(
-            db,
-            "shops",
-            nextUser.uid
-          );
-    
-          const shopSnap = await getDoc(shopRef);
-    
-          if (shopSnap.exists()) {
-    
-            const data = shopSnap.data();
-    
-            if (data.ownerEmail !== nextUser.email) {
-    
-              await updateDoc(shopRef, {
-                ownerEmail: nextUser.email,
-              });
-    
-            }
-    
-          }
-    
-        }
-    
-      } catch (error) {
-    
-        console.error("Failed to sync email:", error);
-    
-      }
-    
+    const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
       setIsLoading(false);
       syncRouterAuth(nextUser, false);
       void router.invalidate();
-    
     });
 
     return unsubscribe;
@@ -139,6 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await firebaseSignOut(getFirebaseAuth());
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("selectedShopId");
+      localStorage.removeItem("cart");
+    }
   }, []);
 
   const value = useMemo<AuthContextValue>(

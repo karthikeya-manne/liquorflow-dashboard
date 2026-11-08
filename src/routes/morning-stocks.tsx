@@ -1,15 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-    collection,
-    getDocs,
-    doc,
-    updateDoc,
-    addDoc,
-    Timestamp,
-    getDoc,
-  } from "firebase/firestore";
-import { getFirestoreDb } from "../lib/firebase";
+  getShop,
+  listProducts,
+  saveMorningStock as saveMorningStockApi,
+} from "@/lib/api/liquorflow";
 import Sidebar from "../components/Sidebar";
 import toast from "react-hot-toast";
 import { sortProducts } from "../lib/sortProducts";
@@ -46,43 +41,18 @@ const shopId = getCurrentShopId();
         return;
       }
 
-    const snapshot = await getDocs(
-      collection(
-        getFirestoreDb(),
-        "shops",
-        shopId,
-        "products"
-      )
-    );
+    const productList = await listProducts(shopId);
 
-    const list = snapshot.docs.map((doc) => ({
-
-      id: doc.id,
-    
-      ...doc.data(),
-    
-      // Opening Balance
-      openingStock: Number(doc.data().quantity),
-    
-      // Receipts entered by manager
+    const list = productList.map((product) => ({
+      ...product,
+      openingStock: Number(product.quantity),
       receipts: 0,
-    
-      // Total = OB + Receipts
-      total:
-        Number(doc.data().quantity),
-    
-      // Closing Balance
-      closingStock:
-        Number(doc.data().quantity),
-    
+      total: Number(product.quantity),
+      closingStock: Number(product.quantity),
     }));
 
-    const shopDoc = await getDoc(
-      doc(getFirestoreDb(), "shops", shopId)
-    );
-    
-    const shopCategory =
-      shopDoc.data()?.shopCategory;
+    const shopDoc = await getShop(shopId);
+    const shopCategory = shopDoc.shopCategory;
     
     setProducts(
       sortProducts(list, shopCategory)
@@ -131,61 +101,16 @@ const shopId = getCurrentShopId();
   
     try {
   
-      let totalSold = 0;
-  
-      for (const product of products) {
-  
-        const sold =
-  Number(product.total) -
-  Number(product.closingStock);
-  
-        totalSold += sold;
-  
-        await updateDoc(
-  
-          doc(
-            getFirestoreDb(),
-            "shops",
-            shopId,
-            "products",
-            product.id
-          ),
-  
-          {
-            quantity: Number(product.closingStock),
-          }
-  
-        );
-        if (sold > 0) {
+      const lines = products.map((product) => {
+        const sold = Number(product.total) - Number(product.closingStock);
+        return {
+          productId: product.id,
+          closingQuantity: Number(product.closingStock),
+          soldQuantity: Math.max(0, sold),
+        };
+      });
 
-            const yesterday = new Date();
-
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            yesterday.setHours(23, 59, 59, 999);
-            
-            await addDoc(
-              collection(
-                getFirestoreDb(),
-                "shops",
-                shopId!,
-                "sales"
-              ),
-              {
-                productName: product.name,
-                category: product.category || "Others",
-                quantity: sold,
-                price: sold * Number(product.price),
-                profit: sold * Number(product.price),
-                paymentMethod: "Morning Stock",
-            
-                soldAt: Timestamp.fromDate(yesterday),
-              }
-            );
-          
-          }
-  
-      }
+      await saveMorningStockApi(shopId, lines);
 
       
   

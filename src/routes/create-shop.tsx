@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
-import { getFirebaseAuth, getFirestoreDb } from "../lib/firebase";
+import { getFirebaseAuth } from "../lib/firebase";
+import { createShop as createShopApi } from "@/lib/api/liquorflow";
 import { syncProducts } from "../lib/syncProducts";
 
 export const Route = createFileRoute("/create-shop")({
@@ -39,18 +39,12 @@ function CreateShopPage() {
 
       setLoading(true);
 
-      const shopRef = await addDoc(
-        collection(getFirestoreDb(), "shops"),
-        {
-          ownerUid: user.uid,
-          ownerEmail: user.email,
-          shopName,
-          shopCategory,
-          createdAt: new Date(),
-        }
-      );
+      const shop = await createShopApi({
+        shopName,
+        shopCategory,
+      });
 
-      const shopId = shopRef.id;
+      const shopId = shop.id;
 
       await syncProducts(shopId);
 

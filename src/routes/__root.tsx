@@ -16,14 +16,13 @@ import appCss from "../styles.css?url";
 
 import { Toaster } from "react-hot-toast";
 
-import { useState, useEffect }
-from "react";
 
 import PageLoader
 from "../components/PageLoader";
 
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { Navigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 
 function NotFoundComponent() {
   return (
@@ -144,6 +143,7 @@ export const Route = createRootRouteWithContext<{
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
+  ssr: false,
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
@@ -166,65 +166,33 @@ function AuthGate({
   children: React.ReactNode;
 }) {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+
+  const isPublic = pathname === "/login";
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!user && !isPublic) {
+      void navigate({ to: "/login", replace: true });
+    }
+  }, [user, isLoading, isPublic, navigate]);
 
   if (isLoading) {
     return <PageLoader />;
   }
 
-  const router = useRouter();
-
-const currentPath =
-router.state.location.pathname;
-
-  const publicRoutes = [
-    "/login",
-  ];
-
-  if (
-    !user &&
-    !publicRoutes.includes(
-      currentPath
-    )
-  ) {
-    return <Navigate to="/login" />;
-      "/login";
-
-    return null;
+  if (!user && !isPublic) {
+    return <PageLoader />;
   }
 
   return <>{children}</>;
 }
 
 function RootComponent() {
-
-  const { queryClient } =
-    Route.useRouteContext();
-
-  const [appLoading,
-    setAppLoading] =
-    useState(true);
-
-  useEffect(() => {
-
-    const timer =
-      setTimeout(() => {
-
-        setAppLoading(
-          false
-        );
-
-      }, 2000);
-
-    return () =>
-      clearTimeout(timer);
-
-  }, []);
-
-  if (appLoading) {
-
-    return <PageLoader />;
-
-  }
+  const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>

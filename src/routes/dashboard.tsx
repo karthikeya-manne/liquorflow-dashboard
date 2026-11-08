@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAuthBeforeLoad } from "@/lib/require-auth";
 
 import {
   useState,
@@ -6,27 +7,26 @@ import {
   useRef,
 } from "react";
 
-import {
-  collection,
-  getDocs,
-} from "firebase/firestore";
-
 import { savePdf } from "../lib/pdf-download";
-
-import { getFirestoreDb, getFirebaseAuth } from "../lib/firebase";
+import { listProducts, listSales } from "@/lib/api/liquorflow";
+import { getSaleDate } from "@/lib/sale-utils";
 
 import Sidebar from "../components/Sidebar";
 
 import PageLoader
 from "../components/PageLoader";
 
-import { getCurrentShopId } from "@/lib/currentShop";
+import toast from "react-hot-toast";
+import { useProtectedShopSession } from "@/hooks/use-protected-shop-session";
 
 export const Route = createFileRoute("/dashboard")({
+  beforeLoad: () => requireAuthBeforeLoad("/dashboard"),
+  ssr: false,
   component: DashboardPage,
 });
 
 function DashboardPage() {
+  const { shopId, ready } = useProtectedShopSession();
 
   const [products, setProducts] =
     useState<any[]>([]);
@@ -38,27 +38,17 @@ function DashboardPage() {
   useState<number>(0);
 
 
-  const [loading,
-    setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-const shopId = getCurrentShopId();
+  const [purchaseQty, setPurchaseQty] =
+    useState<Record<string, number>>({});
 
-    useEffect(() => {
+  const inputRefs = useRef<HTMLInputElement[]>([]);
 
-  fetchData();
-
-    }, []);
-
-
-
-    const [purchaseQty, setPurchaseQty] =
-  useState<Record<string, number>>({});
-
-  const inputRefs =
-  useRef<HTMLInputElement[]>(
-    []
-  );
+  useEffect(() => {
+    if (!ready || !shopId) return;
+    void fetchData();
+  }, [ready, shopId]);
 
   async function fetchData() {
 
@@ -66,58 +56,23 @@ const shopId = getCurrentShopId();
 
     try {
 
-      const productsSnapshot =
-        await getDocs(
-          collection(
-            getFirestoreDb(),
-            "shops",
-            shopId,
-            "products"
-          )
-        );
-
-      const productsData: any[] = [];
-
-      productsSnapshot.forEach(
-        (docItem) => {
-
-          productsData.push({
-            id: docItem.id,
-            ...docItem.data(),
-          });
-
-        }
-      );
-
+      const productsData = await listProducts(shopId);
       setProducts(productsData);
 
-      const salesSnapshot =
-        await getDocs(
-          collection(
-            getFirestoreDb(),
-            "shops",
-            shopId,
-            "sales"
-          )
-        );
-
-      const salesData: any[] = [];
-
-      salesSnapshot.forEach(
-        (docItem) => {
-
-          salesData.push({
-            id: docItem.id,
-            ...docItem.data(),
-          });
-
-        }
-      );
-
+      const salesData = await listSales(shopId);
       setSales(salesData);
 
     } catch (error) {
       console.error(error);
+      const message =
+        error instanceof Error ? error.message : "Failed to load dashboard data";
+      toast.error(
+        message.includes("Not authenticated")
+          ? "Please sign in again."
+          : message.includes("fetch") || message.includes("Failed")
+            ? "Cannot reach API. Start the backend (port 5000) and check VITE_API_BASE_URL."
+            : message,
+      );
     } finally {
       setLoading(false);
     }
@@ -281,8 +236,7 @@ const shopId = getCurrentShopId();
     sales
       .filter((sale) => {
 
-        const saleDate =
-          sale.soldAt?.toDate?.();
+        const saleDate = getSaleDate(sale);
 
         return (
           saleDate &&
@@ -309,8 +263,7 @@ const shopId = getCurrentShopId();
     sales
       .filter((sale) => {
 
-        const saleDate =
-          sale.soldAt?.toDate?.();
+        const saleDate = getSaleDate(sale);
 
         return (
           saleDate &&
@@ -356,8 +309,7 @@ const shopId = getCurrentShopId();
 
   sales.forEach((sale) => {
 
-    const saleDate =
-      sale.soldAt?.toDate?.();
+    const saleDate = getSaleDate(sale);
 
     if (!saleDate) return;
 
@@ -509,8 +461,7 @@ const autoTable = (await import("jspdf-autotable")).default;
     const todaySales =
       sales.filter((sale) => {
   
-        const saleDate =
-          sale.soldAt?.toDate?.();
+        const saleDate = getSaleDate(sale);
   
         return (
           saleDate &&
@@ -672,10 +623,12 @@ await savePdf(
   
   }
 
-  if (loading) {
-
+  if (!ready) {
     return <PageLoader />;
-  
+  }
+
+  if (loading) {
+    return <PageLoader />;
   }
 
   return (

@@ -1,21 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import {
-  collection,
-  addDoc,
-  doc,
-  updateDoc,
-  getDoc,
-  Timestamp,
-} from "firebase/firestore";
-
-import {
-  getFirestoreDb,
-  getFirebaseAuth,
-} from "../lib/firebase";
-
+import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { createSale } from "@/lib/api/liquorflow";
+import { invalidateShopQueries } from "@/lib/api/invalidate-shop";
+import { getCurrentShopId } from "@/lib/currentShop";
 
 import PageLoader
 from "../components/PageLoader";
@@ -26,6 +16,7 @@ export const Route =
   });
 
 function CartPage() {
+  const queryClient = useQueryClient();
 
   const [customerPaid, setCustomerPaid] =
   useState("");
@@ -72,10 +63,7 @@ function CartPage() {
   }
   async function completeSale() {
 
-    const shopId =
-      getFirebaseAuth().currentUser?.uid;
-  
-    if (!shopId) return;
+    const shopId = getCurrentShopId();
   
     if (cart.length === 0) {
   
@@ -100,69 +88,16 @@ function CartPage() {
         return;
       }
   
-      for (const item of cart) {
-  
-        const productRef = doc(
-          getFirestoreDb(),
-          "shops",
-          shopId,
-          "products",
-          item.id
-        );
-  
-        const productSnap =
-          await getDoc(productRef);
-  
-        if (!productSnap.exists())
-          continue;
-  
-        const productData =
-          productSnap.data();
-  
-        const newQty = Math.max(
-  0,
-  productData.quantity -
-    item.quantity
-);
-  
-        await updateDoc(
-          productRef,
-          {
-            quantity: newQty,
-          }
-        );
-  
-        await addDoc(
-          collection(
-            getFirestoreDb(),
-            "shops",
-            shopId,
-            "sales"
-          ),
-          {
-            productName:
-              item.name,
-  
-            category:
-              item.category,
-  
-            quantity:
-              item.quantity,
-  
-            price:
-              item.price *
-              item.quantity,
+      await createSale(shopId, {
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
+        paymentMethod,
+      });
 
-              paymentMethod:
-              paymentMethod,
-  
-            soldAt:
-              Timestamp.now(),
-          }
-        );
-  
-      }
-  
+      invalidateShopQueries(queryClient, shopId);
+
       localStorage.removeItem(
         "cart"
       );

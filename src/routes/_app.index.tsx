@@ -1,13 +1,27 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
+import PageLoader from "@/components/PageLoader";
 
 export const Route = createFileRoute("/_app/")({
-  beforeLoad: () => {
-    throw redirect({
-      to: "/dashboard",
-    });
-  },
+  component: HomeRedirect,
 });
 
-export default function RedirectPage() {
-  return null;
+function HomeRedirect() {
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!user) {
+      void navigate({ to: "/login" });
+      return;
+    }
+
+    const shopId = localStorage.getItem("selectedShopId");
+    void navigate({ to: shopId ? "/dashboard" : "/select-shop" });
+  }, [user, isLoading, navigate]);
+
+  return <PageLoader />;
 }

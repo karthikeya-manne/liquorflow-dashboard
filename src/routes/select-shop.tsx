@@ -1,15 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-import {
-  getFirebaseAuth,
-  getFirestoreDb,
-} from "../lib/firebase";
+import { getFirebaseAuth } from "../lib/firebase";
+import { listShops } from "@/lib/api/liquorflow";
 
 export const Route = createFileRoute("/select-shop")({
   component: SelectShopPage,
@@ -33,23 +25,11 @@ function SelectShopPage() {
         }
   
         try {
-          const snapshot = await getDocs(
-            query(
-              collection(getFirestoreDb(), "shops"),
-              where("ownerUid", "==", user.uid)
-            )
-          );
-  
+          const list = await listShops();
+
           console.log("UID:", user.uid);
-          console.log("Docs:", snapshot.docs.length);
-  
-          const list = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-  
           console.log("Shop List:", list);
-  
+
           setShops(list);
   
         } catch (err) {

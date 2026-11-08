@@ -1,0 +1,17 @@
+# Render Blueprint (repo root). Add secrets in the Render dashboard after sync.
+services:
+  - type: web
+    name: liquorflow-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: 0.0.0.0
+      - key: MONGODB_DB_NAME
+        value: liquorflow

@@ -25,8 +25,7 @@ function AppLayout() {
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   return (

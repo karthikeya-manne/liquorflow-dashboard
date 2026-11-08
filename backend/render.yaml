@@ -1,0 +1,18 @@
+# Render Blueprint — create service from repo; set env vars in dashboard (never commit secrets).
+services:
+  - type: web
+    name: liquorflow-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: 0.0.0.0
+      - key: MONGODB_DB_NAME
+        value: liquorflow
+      # Set in Render dashboard: MONGODB_URI, FIREBASE_*, CLIENT_ORIGIN, PORT is injected by Render
