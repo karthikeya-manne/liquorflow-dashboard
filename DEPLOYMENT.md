@@ -77,7 +77,7 @@ Auth uses the Firebase **client** SDK only. All shop data calls `VITE_API_BASE_U
    | `MONGODB_DB_NAME` | `liquorflow` |
    | `FIREBASE_PROJECT_ID` | Same as web app |
    | `FIREBASE_CLIENT_EMAIL` | Service account |
-   | `FIREBASE_PRIVATE_KEY` | One line with `\n` for newlines (Render multiline secret works too) |
+   | `FIREBASE_PRIVATE_KEY` | Paste in Render’s **multiline** secret field (full `-----BEGIN PRIVATE KEY-----` block), or one line with `\n` between lines |
    | `CLIENT_ORIGIN` | See Capacitor note below |
    | `HOST` | `0.0.0.0` |
 

@@ -41,3 +41,8 @@ main().catch((err) => {
   console.error("Failed to start server:", safeStartupError(err));
   process.exit(1);
 });
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", safeStartupError(reason));
+  process.exit(1);
+});

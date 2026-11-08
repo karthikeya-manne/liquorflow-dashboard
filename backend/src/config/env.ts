@@ -15,6 +15,21 @@ export type Env = z.infer<typeof envSchema>;
 
 let cached: Env | undefined;
 
+/** Normalizes Firebase private keys from .env, Render, Railway, etc. */
+export function normalizeFirebasePrivateKey(raw: string): string {
+  let key = raw.trim();
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1);
+  }
+  if (key.includes("\\n")) {
+    key = key.replace(/\\n/g, "\n");
+  }
+  return key;
+}
+
 export function getEnv(): Env {
   if (cached) return cached;
 
@@ -23,7 +38,9 @@ export function getEnv(): Env {
     MONGODB_DB_NAME: process.env.MONGODB_DB_NAME ?? "liquorflow",
     FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
     FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
-    FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY
+      ? normalizeFirebasePrivateKey(process.env.FIREBASE_PRIVATE_KEY)
+      : undefined,
     PORT: process.env.PORT ?? "5000",
     HOST: process.env.HOST ?? "0.0.0.0",
     CLIENT_ORIGIN: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
