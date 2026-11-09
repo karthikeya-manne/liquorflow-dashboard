@@ -2,8 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getFirebaseAuth } from "../lib/firebase";
 import { listShops } from "@/lib/api/liquorflow";
+import { requireAuthBeforeLoad } from "@/lib/require-auth";
 
 export const Route = createFileRoute("/select-shop")({
+  ssr: false,
+  beforeLoad: async () => requireAuthBeforeLoad("/select-shop"),
   component: SelectShopPage,
 });
 

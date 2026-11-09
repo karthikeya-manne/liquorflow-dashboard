@@ -1,18 +1,21 @@
 import { redirect } from "@tanstack/react-router";
-import { getRouterAuthState } from "@/lib/auth-types";
+import { getRouterAuthState, whenAuthReady } from "@/lib/auth-types";
 
 const PUBLIC_PATHS = new Set(["/login"]);
 
-export function requireAuthBeforeLoad(currentPath: string) {
+export async function requireAuthBeforeLoad(currentPath: string) {
   if (PUBLIC_PATHS.has(currentPath)) {
     return;
   }
 
-  const auth = getRouterAuthState();
-  if (auth.isLoading) {
+  if (typeof window === "undefined") {
     return;
   }
+
+  await whenAuthReady();
+
+  const auth = getRouterAuthState();
   if (!auth.isAuthenticated) {
-    throw redirect({ to: "/login" });
+    throw redirect({ to: "/login", replace: true });
   }
 }

@@ -35,6 +35,10 @@ export function createApp() {
   );
   app.use(express.json({ limit: "2mb" }));
 
+  app.get("/", (_req, res) => {
+    res.json({ service: "LiquorFlow API", status: "ok", health: "/health" });
+  });
+
   app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
   });

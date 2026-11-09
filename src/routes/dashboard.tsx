@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 import { useProtectedShopSession } from "@/hooks/use-protected-shop-session";
 
 export const Route = createFileRoute("/dashboard")({
-  beforeLoad: () => requireAuthBeforeLoad("/dashboard"),
+  beforeLoad: async () => requireAuthBeforeLoad("/dashboard"),
   ssr: false,
   component: DashboardPage,
 });

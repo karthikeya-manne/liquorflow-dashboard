@@ -2,29 +2,20 @@ import { Link } from "@tanstack/react-router";
 
 import { useState } from "react";
 
-import { signOut } from "firebase/auth";
-
-import { getFirebaseAuth } from "../lib/firebase";
+import { useAuth } from "@/lib/auth-context";
 
 import ShopSwitcher from "./ShopSwitcher";
 
 export default function Sidebar() {
-
-  const [isOpen, setIsOpen] =
-    useState(false);
+  const { signOut } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   async function handleLogout() {
-
     try {
-
-      await signOut(getFirebaseAuth());
-
+      await signOut();
       window.location.href = "/login";
-
     } catch (error) {
-
       console.error(error);
-
     }
   }
 

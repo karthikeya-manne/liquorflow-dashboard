@@ -3,8 +3,11 @@ import { useState } from "react";
 import { getFirebaseAuth } from "../lib/firebase";
 import { createShop as createShopApi } from "@/lib/api/liquorflow";
 import { syncProducts } from "../lib/syncProducts";
+import { requireAuthBeforeLoad } from "@/lib/require-auth";
 
 export const Route = createFileRoute("/create-shop")({
+  ssr: false,
+  beforeLoad: async () => requireAuthBeforeLoad("/create-shop"),
   component: CreateShopPage,
 });
 

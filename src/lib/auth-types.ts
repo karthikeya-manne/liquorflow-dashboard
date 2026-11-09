@@ -12,8 +12,29 @@ let routerAuthState: RouterAuthState = {
   isAuthenticated: false,
 };
 
+let authReady = false;
+const authReadyWaiters: Array<() => void> = [];
+
+/** Resolves after the first Firebase auth state (signed in or signed out). */
+export function whenAuthReady(): Promise<void> {
+  if (authReady) return Promise.resolve();
+  return new Promise((resolve) => {
+    authReadyWaiters.push(resolve);
+  });
+}
+
+function markAuthReady() {
+  if (authReady) return;
+  authReady = true;
+  for (const resolve of authReadyWaiters) resolve();
+  authReadyWaiters.length = 0;
+}
+
 export function setRouterAuthState(partial: Partial<RouterAuthState>) {
   routerAuthState = { ...routerAuthState, ...partial };
+  if (partial.isLoading === false) {
+    markAuthReady();
+  }
 }
 
 export function getRouterAuthState(): RouterAuthState {

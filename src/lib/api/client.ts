@@ -34,6 +34,17 @@ async function getAuthToken(forceRefresh = false): Promise<string> {
   return user.getIdToken(forceRefresh);
 }
 
+function networkErrorMessage(): string {
+  const base = getApiBaseUrl();
+  if (
+    typeof window !== "undefined" &&
+    /^https?:\/\/localhost(:\d+)?$/i.test(window.location.origin)
+  ) {
+    return `Cannot reach the API at ${base}. Add ${window.location.origin} to CLIENT_ORIGIN on Render and redeploy—or use a local API (set VITE_API_BASE_URL=http://localhost:5000 and run cd backend → npm run dev).`;
+  }
+  return `Cannot reach the API at ${base}. Check GET ${base}/health.`;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -53,9 +64,7 @@ export async function apiFetch<T>(
       },
     });
   } catch {
-    throw new Error(
-      "Cannot reach the LiquorFlow API. Start the backend (cd backend → npm run dev) and confirm http://localhost:5000/health returns OK.",
-    );
+    throw new Error(networkErrorMessage());
   }
 
   if (response.status === 401 && retryOnUnauthorized) {
@@ -71,9 +80,7 @@ export async function apiFetch<T>(
         },
       });
     } catch {
-      throw new Error(
-        "Cannot reach the LiquorFlow API. Start the backend (cd backend → npm run dev) and confirm http://localhost:5000/health returns OK.",
-      );
+      throw new Error(networkErrorMessage());
     }
     return parseApiResponse<T>(retry);
   }

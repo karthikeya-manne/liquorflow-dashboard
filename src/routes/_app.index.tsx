@@ -20,7 +20,10 @@ function HomeRedirect() {
     }
 
     const shopId = localStorage.getItem("selectedShopId");
-    void navigate({ to: shopId ? "/dashboard" : "/select-shop" });
+    void navigate({
+      to: shopId ? "/dashboard" : "/select-shop",
+      replace: true,
+    });
   }, [user, isLoading, navigate]);
 
   return <PageLoader />;
